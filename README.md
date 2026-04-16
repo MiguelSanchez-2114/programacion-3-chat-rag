@@ -1,4 +1,4 @@
-# programacion-3-chat-rag
+# Sistema de Chat tipo "RAG"
 
 ## Descripción general
 
