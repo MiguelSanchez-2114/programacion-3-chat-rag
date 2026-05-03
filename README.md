@@ -63,3 +63,14 @@ docs/
 
 ### `src/`
 Carpeta reservada para el codigo fuente y la implementacion del proyecto.
+
+## Enlaces a diagramas de los RFs
+
+- **RF-01 – Inicio de sesión**: [Diagrama RF-01 - Inicio de sesión](https://drive.google.com/file/d/1SKOCEcRLtfP-OEyp4_uAb0Jltc6QRiYc/view?usp=sharing)
+- **RF-02 – Visualización de conversación**: [Diagrama RF-02 - Visualización de conversación](https://drive.google.com/file/d/1sx8RVY0V05mLj_lU_4GSe92SlhyoklKl/view?usp=sharing)
+- **RF-03 – Envío de mensajes**: [Diagrama RF-03 - Envío de mensajes](https://drive.google.com/file/d/1TyAh7FPSdb8rpm5NtIaodfFEdWg4Q6D1/view?usp=sharing)
+- **RF-04 – Carga de archivo**: [Diagrama RF-04 - Carga de archivo](https://drive.google.com/file/d/1MmnXDCEEch1MB2cZj0W9nnxxGQFeubW6/view?usp=sharing)
+- **RF-05 – Respuesta simulada (modo alternativo)**: [Diagrama RF-05 - Respuesta simulada](diagrams/estados/RF-05-respuesta_simulada.png)
+- **RF-06 – Registro de conversaciones**: [Diagrama RF-06 - Registro de conversaciones](diagrams/clases/RF-06-registro_conversaciones.png)
+- **RF-07 – Asociación de archivo**: [Diagrama RF-07 - Asociación de archivo](diagrams/comunicacion/RF-07-asociacion_archivo.png)
+- **RF-08 – Exportación a JSON o XML**: [Diagrama RF-08 - Exportación](diagrams/actividades/RF-08-exportacion_json_xml.png)
