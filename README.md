@@ -155,3 +155,14 @@ Credenciales por defecto (si no cambias `.env`):
 ## Siguiente paso sugerido
 
 Integrar una API de IA real (si disponen de una gratuita) en `chat_service.py` para reemplazar la respuesta simulada.
+
+## Enlaces a diagramas de los RFs
+
+- **RF-01 – Inicio de sesión**: [Diagrama RF-01 - Inicio de sesión](https://drive.google.com/file/d/1SKOCEcRLtfP-OEyp4_uAb0Jltc6QRiYc/view?usp=sharing)
+- **RF-02 – Visualización de conversación**: [Diagrama RF-02 - Visualización de conversación](https://drive.google.com/file/d/1sx8RVY0V05mLj_lU_4GSe92SlhyoklKl/view?usp=sharing)
+- **RF-03 – Envío de mensajes**: [Diagrama RF-03 - Envío de mensajes](https://drive.google.com/file/d/1TyAh7FPSdb8rpm5NtIaodfFEdWg4Q6D1/view?usp=sharing)
+- **RF-04 – Carga de archivo**: [Diagrama RF-04 - Carga de archivo](https://drive.google.com/file/d/1MmnXDCEEch1MB2cZj0W9nnxxGQFeubW6/view?usp=sharing)
+- **RF-05 – Respuesta simulada (modo alternativo)**: [Diagrama RF-05 - Respuesta simulada](https://drive.google.com/file/d/1Dbhku1yzauZEfyPsq6GUT5UaiHnI_Dm_/view?usp=drive_link)
+- **RF-06 – Registro de conversaciones**: [Diagrama RF-06 - Registro de conversaciones](https://drive.google.com/file/d/1zX8SOsCdEU1-eWTd9Gbs6hsf7mrwx8DR/view?usp=drive_link)
+- **RF-07 – Asociación de archivo**: [Diagrama RF-07 - Asociación de archivo](https://drive.google.com/file/d/1TgYOe2qjp3OMqCtol_DVoxLcN13xwS-Q/view?usp=drive_link)
+- **RF-08 – Exportación a JSON o XML**: [Diagrama RF-08 - Exportación](https://drive.google.com/file/d/1opCgBX0q2nF936ZUhOKfy7LLuHOGqfsx/view?usp=drive_link)
