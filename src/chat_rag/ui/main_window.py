@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
+    QBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -12,17 +13,25 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QTextEdit,
     QVBoxLayout,
-    QWidget,
+    QWidget
 )
 
 from PySide6.QtCore import Qt
 
-from chat_rag.ui.login_dialog import LoginDialog
+from chat_rag.ui.views.login_view import LoginView
+from chat_rag.ui.views.view import View
 
 class MainWindow(QMainWindow):
+    __title: str
+    __views: dict[str, View]
+    __main_layout: QBoxLayout
+
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Chat RAG")
+        self.__title = "Chat RAG"
+        self.__views = {}
+        self.__main_layout = None
+        self.setWindowTitle(self.__title)
         self.resize(980, 680)
         self.loaded_file_name = None
 
@@ -145,191 +154,59 @@ class MainWindow(QMainWindow):
         root.setObjectName("root")
         self.setCentralWidget(root)
 
-        main_layout = QHBoxLayout()
-        main_layout.setContentsMargins(18, 18, 18, 18)
-        main_layout.setSpacing(16)
-        root.setLayout(main_layout)
+        self.__main_layout = QVBoxLayout()
+        self.__main_layout.setContentsMargins(18, 18, 18, 18)
+        self.__main_layout.setSpacing(16)
+        root.setLayout(self.__main_layout)
 
-        main_layout.addWidget(self._create_sidebar())
-        main_layout.addWidget(self._create_chat_panel(), stretch=1)
+        # self.__main_layout.addWidget(self._create_sidebar())
+        # self.__main_layout.addWidget(self._create_chat_panel(), stretch=1)
 
-    def _create_sidebar(self) -> QFrame:
-        sidebar = QFrame()
-        sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(245)
+        # Texto de referencia.
+        workarea_label = QLabel("Área de trabajo")
+        workarea_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        workarea_label.setAlignment(Qt.AlignCenter)
+        self.__main_layout.addWidget(workarea_label)
 
-        layout = QVBoxLayout(sidebar)
-        layout.setContentsMargins(20, 24, 20, 24)
-        layout.setSpacing(14)
+        self.__load_views()
 
-        title = QLabel("Chat RAG")
-        title.setObjectName("appTitle")
+    def __load_views(self) -> None:
+        views = [LoginView(window=self)]
+        self.__views = {view.key: view for view in views}
+        self.__current_view = views[0]
+        self.__update_view()
+    
+    def __update_view(self) -> None:
+        if self.__current_view is not None:
+            # Limpiar el layout actual.
+            while self.__main_layout.count():
+                child = self.__main_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+            # Agregar la vista actual al layout.
+            self.__main_layout.addLayout(self.__current_view.root)
+            self.__update_title(self.__current_view.title)
 
-        description = QLabel("Panel de trabajo")
-        description.setObjectName("sideText")
+    def __update_title(self, subtitle: str) -> None:
+        title = f"{self.__title}"
+        if subtitle:
+            title += f" - {subtitle}"
+        self.setWindowTitle(title)
 
-        file_section = QLabel("Archivo cargado")
-        file_section.setObjectName("sideSection")
+    def __switch_view(self, key: str) -> None:
+        if self.__exist_view(key):
+            self.__current_view = self.__views[key]
+            self.__update_view()
 
-        self.file_name_label = QLabel("Sin archivo seleccionado")
-        self.file_name_label.setObjectName("fileName")
-        self.file_name_label.setWordWrap(True)
-
-        load_button = QPushButton("Cargar archivo")
-        load_button.setObjectName("sideButton")
-        load_button.clicked.connect(self._select_file)
-
-        export_json_button = QPushButton("Exportar JSON")
-        export_json_button.setObjectName("sideButton")
-        export_json_button.clicked.connect(self._show_pending_action)
-
-        export_xml_button = QPushButton("Exportar XML")
-        export_xml_button.setObjectName("sideButton")
-        export_xml_button.clicked.connect(self._show_pending_action)
-
-        layout.addWidget(title)
-        layout.addWidget(description)
-        layout.addSpacing(18)
-        layout.addWidget(file_section)
-        layout.addWidget(self.file_name_label)
-        layout.addWidget(load_button)
-        layout.addSpacing(8)
-        layout.addWidget(export_json_button)
-        layout.addWidget(export_xml_button)
-        layout.addStretch()
-
-        footer = QLabel("Vista visual inicial")
-        footer.setObjectName("sideText")
-        footer.setAlignment(Qt.AlignCenter)
-        layout.addWidget(footer)
-
-        return sidebar
-
-    def _create_chat_panel(self) -> QFrame:
-        panel = QFrame()
-        panel.setObjectName("chatPanel")
-
-        layout = QVBoxLayout(panel)
-        layout.setContentsMargins(22, 20, 22, 20)
-        layout.setSpacing(14)
-
-        title = QLabel("Conversacion")
-        title.setObjectName("chatTitle")
-
-        subtitle = QLabel("Realiza preguntas sobre el archivo seleccionado")
-        subtitle.setObjectName("chatSubtitle")
-
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
-
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-
-        conversation_body = QWidget()
-        conversation_body.setObjectName("conversationBody")
-        self.messages_layout = QVBoxLayout(conversation_body)
-        self.messages_layout.setContentsMargins(16, 16, 16, 16)
-        self.messages_layout.setSpacing(10)
-        self.messages_layout.addStretch()
-
-        self.scroll_area.setWidget(conversation_body)
-        layout.addWidget(self.scroll_area, stretch=1)
-
-        input_row = QHBoxLayout()
-        input_row.setSpacing(10)
-
-        self.message_input = QTextEdit()
-        self.message_input.setObjectName("messageInput")
-        self.message_input.setPlaceholderText("Escribe tu pregunta...")
-        self.message_input.setFixedHeight(70)
-
-        send_button = QPushButton("Enviar")
-        send_button.setObjectName("sendButton")
-        send_button.setFixedHeight(70)
-        send_button.clicked.connect(self._send_message)
-
-        input_row.addWidget(self.message_input, stretch=1)
-        input_row.addWidget(send_button)
-        layout.addLayout(input_row)
-
-        self._add_message(
-            "system",
-            "Bienvenida. Carga un archivo y escribe una pregunta para iniciar la conversacion.",
-        )
-
-        return panel
-
-    def _add_message(self, sender: str, text: str) -> None:
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
-
-        bubble = QLabel(text)
-        bubble.setWordWrap(True)
-        bubble.setMaximumWidth(560)
-
-        if sender == "user":
-            bubble.setObjectName("userBubble")
-            row.addStretch()
-            row.addWidget(bubble)
-        else:
-            bubble.setObjectName("systemBubble")
-            row.addWidget(bubble)
-            row.addStretch()
-
-        self.messages_layout.insertLayout(self.messages_layout.count() - 1, row)
-        self._scroll_to_bottom()
-
-    def _send_message(self) -> None:
-        message = self.message_input.toPlainText().strip()
-        if not message:
-            return
-
-        self._add_message("user", message)
-        self.message_input.clear()
-
-        if self.loaded_file_name:
-            response = (
-                "Respuesta simulada con base en el archivo cargado: "
-                f"{self.loaded_file_name}."
-            )
-        else:
-            response = "Para responder sobre un documento, primero carga un archivo."
-
-        self._add_message("system", response)
-
-    def _select_file(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Seleccionar archivo",
-            "",
-            "Archivos permitidos (*.txt *.pdf *.json *.xml)",
-        )
-
-        if not file_path:
-            return
-
-        self.loaded_file_name = file_path.split("/")[-1]
-        self.file_name_label.setText(self.loaded_file_name)
-        self._add_message("system", f"Archivo cargado: {self.loaded_file_name}")
-
-    def _show_pending_action(self) -> None:
-        QMessageBox.information(
-            self,
-            "Accion pendiente",
-            "Esta opcion visual queda lista para conectarse al servicio correspondiente.",
-        )
-
-    def _scroll_to_bottom(self) -> None:
-        bar = self.scroll_area.verticalScrollBar()
-        bar.setValue(bar.maximum())
+    def __exist_view(self, key: str) -> bool:
+        return key in self.__views
+    
+    def route(self, key: str) -> None:
+        if self.__exist_view(key):
+            self.__switch_view(key)
 
 def run_app() -> None:
     app = QApplication(sys.argv)
-    login = LoginDialog()
-
-    if login.exec() == LoginDialog.Accepted:
-        window = MainWindow()
-        window.show()
-        sys.exit(app.exec())
-
-    sys.exit(0)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())

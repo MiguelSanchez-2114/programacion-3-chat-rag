@@ -7,22 +7,27 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMainWindow,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
+from chat_rag.ui.views.view import View
 
-class LoginDialog(QDialog):
-    def __init__(self) -> None:
-        super().__init__()
-        self.setWindowTitle("Inicio de sesion - Chat RAG")
-        self.resize(500, 620)
-        self.setMinimumSize(460, 590)
-        self._build_ui()
+class LoginView(View):
+    def __init__(self, window: QMainWindow):
+        super().__init__(window, key="login", title="Login")
+        self.main_window.resize(500, 620)
+        self.main_window.setMinimumSize(460, 590)
+        self.build_ui()
 
-    def _build_ui(self) -> None:
-        self.setStyleSheet(
+    def build_ui(self) -> None:
+        self.root = QVBoxLayout()
+        self.root.setContentsMargins(34, 28, 34, 28)
+        self.root.setSpacing(18)
+
+        self.main_window.setStyleSheet(
             """
             QDialog {
                 background-color: #EEF4FF;
@@ -97,10 +102,6 @@ class LoginDialog(QDialog):
             """
         )
 
-        root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(34, 28, 34, 28)
-        root_layout.setSpacing(18)
-
         header = QVBoxLayout()
         header.setSpacing(4)
 
@@ -114,7 +115,7 @@ class LoginDialog(QDialog):
 
         header.addWidget(brand_title)
         header.addWidget(brand_subtitle)
-        root_layout.addLayout(header)
+        self.root.addLayout(header)
 
         card = QFrame()
         card.setObjectName("loginCard")
@@ -172,12 +173,12 @@ class LoginDialog(QDialog):
         card_layout.addWidget(self.error_label)
         card_layout.addWidget(self.login_button)
 
-        root_layout.addWidget(card)
+        self.root.addWidget(card)
 
         footer = QLabel("Proyecto academico - Programacion")
         footer.setObjectName("hintLabel")
         footer.setAlignment(Qt.AlignCenter)
-        root_layout.addWidget(footer)
+        self.root.addWidget(footer)
 
     def _validate_login(self) -> None:
         expected_user = os.getenv("APP_USERNAME", "admin")
