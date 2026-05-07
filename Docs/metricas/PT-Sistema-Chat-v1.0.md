@@ -73,7 +73,7 @@ Las pruebas se enfocan exclusivamente en los casos de excepción definidos en ca
 | RF007 – Asociar archivo a la conversación | Excepción / Negativa | Equipo de QA |
 | RF008 – Exportación de conversación | Excepción / Negativa | Equipo de QA |
 
-**Objetivo de las pruebas:** Verificar que ante cada excepción definida en los RF, el sistema detecte el fallo, muestre un mensaje de error apropiado al usuario y mantenga la integridad de los datos y la estabilidad de la aplicación.
+**Objetivo de las pruebas:** Verificar que ante cada excepción definida en los RF, el sistema detecte el fallo, muestre un mensaje de error apropiado al usuario y mantenga la integridad y la estabilidad de la aplicación.
 
 **Orden de ejecución:** Los módulos se ejecutan de forma secuencial siguiendo la dependencia entre requerimientos: RF001 → RF002 → RF003/RF004 → RF005 → RF006 → RF007 → RF008.
 
@@ -114,13 +114,13 @@ Las pruebas se enfocan exclusivamente en los casos de excepción definidos en ca
 Para el proceso de pruebas se requiere la disponibilidad de los siguientes entornos:
 
 **a. Servidor de Aplicación**
-- Servidor con soporte para la aplicación web del sistema de chat.
+- Conexion con la aplicación del sistema de chat tipo RAG.
 - Acceso a base de datos relacional configurada y operativa.
 - Conectividad a internet habilitada.
 
 **b. Equipos Cliente (Equipos de Prueba)**
-- Navegador web actualizado (Chrome, Firefox o Edge en versión reciente).
-- Acceso a la aplicación mediante URL definida por el equipo de desarrollo.
+- Aplicacion de chat tipo RAG mas reciente.
+- Acceso a la aplicación chat RAG.
 - Sistema operativo: Windows 10/11 o macOS reciente.
 
 **c. Base de Datos de Pruebas**
@@ -141,7 +141,7 @@ Para el proceso de pruebas se requiere la disponibilidad de los siguientes entor
 
 **Errores Graves:** El sistema no maneja la excepción, produce un crash, corrompe datos en BD, o expone información sensible. → **Rechazo inmediato del módulo afectado.**
 
-**Errores Medios:** El sistema detecta el error pero el mensaje mostrado al usuario es incorrecto, ambiguo o no corresponde al RF. → **Se registra como defecto, requiere corrección antes de certificación.**
+**Errores Medios:** El sistema detecta el error pero el mensaje mostrado al usuario es incorrecto, ambiguo o no corresponde al RF. → **Se registra como defecto, requiere corrección.**
 
 **Errores Leves:** El mensaje de error es correcto pero tiene problemas de presentación visual (tipografía, posición). → **Se registra, puede liberarse con corrección en siguiente sprint.**
 
