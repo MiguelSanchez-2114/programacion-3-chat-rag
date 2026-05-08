@@ -111,6 +111,7 @@ class LoginView(View):
         self.agregar_widget("password_input", password_input)
         self.agregar_widget("login_button", login_button)
         self.agregar_widget("error_label", error_label)
+        
     def __position_text(self, background: QFrame) -> None:
         width = background.width()
         height = background.height()
@@ -137,11 +138,12 @@ class LoginView(View):
         width = background.width()
         height = background.height()
 
-        input_x = int(width * 0.388)
-        input_width = int(width * 0.255)
-        input_height = max(34, int(height * 0.065))
-        username_y = int(height * 0.735)
-        password_y = int(height * 0.866)
+        input_x = int(width * 0.390)
+        input_width = int(width * 0.285)
+        input_height = max(38, int(height * 0.072))
+        username_y = int(height * 0.705)
+        password_y = int(height * 0.845)
+
 
         username_input = self.widgets["username_input"]
         username_input.setFixedSize(input_width, input_height)
@@ -166,6 +168,7 @@ class LoginView(View):
             "error_label",
         ):
             self.widgets[key].raise_()
+            
     def _validate_login(self) -> None:
         expected_user = "admin"
         expected_password = "admin123"
@@ -220,18 +223,25 @@ class LoginView(View):
                 font-size: 15px;
                 font-weight: 850;
             }
-            QLineEdit#dinoInputOverlay {
-                background-color: transparent;
-                border: none;
-                color: #2F2F2F;
-                font-size: 15px;
-                padding-left: 24px;
-                padding-right: 20px;
+           QLineEdit#dinoInputOverlay {
+              background-color: transparent;
+              border: none;
+              color: #151515;
+              font-size: 16px;
+              font-weight: 650;
+              padding-left: 34px;
+              padding-right: 24px;
             }
+            
+            QLineEdit#dinoInputOverlay::placeholder {
+            color: #3A2A45;
+            }
+
             QLineEdit#dinoInputOverlay:focus {
                 border: none;
                 background-color: rgba(255, 255, 255, 35);
             }
+            
             QPushButton#dinoLoginButton {
                 background-color: #8ACFE8;
                 border: none;
