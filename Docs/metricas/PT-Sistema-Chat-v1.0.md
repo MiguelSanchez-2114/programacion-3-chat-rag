@@ -1,6 +1,6 @@
 # PLAN DE PRUEBAS
 ## Sistema de Chat Tipo RAG con Carga de Archivos
-## Rsponsable: Juan Emmanuel Sánchez Castañón
+## Reponsable: Juan Emmanuel Sánchez Castañón
 ### Versión 1.0
 
 ---
@@ -26,7 +26,7 @@
 
 | Proyecto | Tipo de Proyecto |
 |----------|-----------------|
-| Sistema de Chat Tipo RAG con Carga de Archivos | Proyecto de Ingenieria de Software |
+| Sistema de Chat Tipo RAG con Carga de Archivos | Proyecto de Ingeniería de Software |
 
 | Documentos relacionados |
 |------------------------|
@@ -115,12 +115,12 @@ Las pruebas se enfocan exclusivamente en los casos de excepción definidos en ca
 Para el proceso de pruebas se requiere la disponibilidad de los siguientes entornos:
 
 **a. Servidor de Aplicación**
-- Conexion con la aplicación del sistema de chat tipo RAG.
+- Conexión con la aplicación del sistema de chat tipo RAG.
 - Acceso a base de datos relacional configurada y operativa.
 - Conectividad a internet habilitada.
 
 **b. Equipos Cliente (Equipos de Prueba)**
-- Aplicacion de chat tipo RAG mas reciente.
+- Aplicación de chat tipo RAG más reciente.
 - Acceso a la aplicación chat RAG.
 - Sistema operativo: Windows 10/11 o macOS reciente.
 
@@ -128,13 +128,13 @@ Para el proceso de pruebas se requiere la disponibilidad de los siguientes entor
 
 | Parámetro | Valor |
 |-----------|-------|
-| Base de Datos | BD_CHAT_TEST |
-| Servidor BD | servidor-pruebas.local |
+| Base de Datos | chat_rag_test |
+| Servidor BD | aws-1-us-east-2.pooler.supabase.com |
 | Datos de prueba | Cargados manualmente por el equipo de QA |
 
 ### 3.1 Criterios de Inicio
 
-- **Aceptación del plan de pruebas:** Revisión y aceptacion del presente documento por el Arquitecto responsable.
+- **Aceptación del plan de pruebas:** Revisión y aceptación del presente documento por el Arquitecto responsable.
 - **Aceptación del entorno:** Verificación de que el entorno de pruebas esté operativo, con acceso a BD y a la aplicación desplegada.
 - **Aceptación de datos de prueba:** Validación de que los datos iniciales necesarios (usuarios registrados, conversaciones previas, archivos de prueba) estén disponibles.
 
@@ -219,7 +219,7 @@ La certificación se realizará en dos etapas:
 | Campo | Detalle |
 |-------|---------|
 | Precondición | El usuario ha iniciado sesión y existe una conversación activa. |
-| Acción del usuario | El sistema intenta registrar el mensaje o la respuesta en la BD. |
+| Acción del usuario | El usuario presiona el botón "Enviar" para enviar un mensaje de texto en la conversación. |
 | Reacción esperada del sistema | Ocurre un error en la BD. El sistema muestra mensaje de error al usuario. |
 | Criticidad | Alta |
 
