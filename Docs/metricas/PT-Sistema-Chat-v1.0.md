@@ -1,5 +1,6 @@
 # PLAN DE PRUEBAS
 ## Sistema de Chat Tipo RAG con Carga de Archivos
+## Rsponsable: Juan Emmanuel Sánchez Castañón
 ### Versión 1.0
 
 ---
@@ -8,7 +9,7 @@
 
 | Versión | Fecha | Cambios | Preparado por | Aprobado por |
 |---------|-------|---------|---------------|--------------|
-| 1.0 | 06/05/2026 | Versión Inicial | — | — |
+| 1.0 | 06/05/2026 | Versión Inicial | Juan Emmanuel Sánchez Castañón | Miguel de Jesus Sánchez Lopez |
 
 ---
 
@@ -133,7 +134,7 @@ Para el proceso de pruebas se requiere la disponibilidad de los siguientes entor
 
 ### 3.1 Criterios de Inicio
 
-- **Aceptación del plan de pruebas:** Revisión y firma del presente documento por el Jefe de Proyecto y el Arquitecto responsable.
+- **Aceptación del plan de pruebas:** Revisión y aceptacion del presente documento por el Arquitecto responsable.
 - **Aceptación del entorno:** Verificación de que el entorno de pruebas esté operativo, con acceso a BD y a la aplicación desplegada.
 - **Aceptación de datos de prueba:** Validación de que los datos iniciales necesarios (usuarios registrados, conversaciones previas, archivos de prueba) estén disponibles.
 
@@ -231,14 +232,6 @@ La certificación se realizará en dos etapas:
 | Reacción esperada del sistema | Ocurre un error en el proceso de generación. El sistema muestra mensaje de error. |
 | Criticidad | Alta |
 
-**EX003 – Error en la actualización de la interfaz**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El sistema genera la respuesta al mensaje del usuario e intenta mostrar los mensajes en la interfaz de chat. |
-| Acción del usuario | El usuario espera ver la respuesta en pantalla. |
-| Reacción esperada del sistema | Ocurre un fallo en la actualización de la interfaz. El sistema detecta que no se pueden renderizar los mensajes, mantiene la información en BD y muestra un mensaje de error al usuario intentando recargar la conversación. |
-| Criticidad | Media |
 
 ---
 
@@ -252,15 +245,6 @@ La certificación se realizará en dos etapas:
 | Acción del usuario | El usuario selecciona un archivo con formato no permitido por el sistema. |
 | Reacción esperada del sistema | El sistema recibe el archivo, detecta que el formato no es válido, lo rechaza y muestra mensaje de error. |
 | Criticidad | Media |
-
-**EX002 – Error al leer el archivo**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El usuario selecciona un archivo con formato permitido. |
-| Acción del usuario | El sistema intenta cargar el archivo seleccionado. |
-| Reacción esperada del sistema | Ocurre un error durante la lectura del archivo. El sistema detiene el proceso de carga, muestra el mensaje de error correspondiente. |
-| Criticidad | Alta |
 
 **EX003 – Archivo demasiado grande**
 
@@ -284,14 +268,6 @@ La certificación se realizará en dos etapas:
 | Reacción esperada del sistema | Ocurre un error en la BD. El sistema muestra mensaje de error. |
 | Criticidad | Alta |
 
-**EX002 – Error en generación de respuesta**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El sistema intenta generar la respuesta simulada basada en el archivo cargado. |
-| Acción del usuario | El sistema procesa el mensaje del usuario. |
-| Reacción esperada del sistema | Ocurre un error en el proceso. El sistema muestra mensaje de error al usuario. |
-| Criticidad | Alta |
 
 **EX003 – Error en la actualización de la interfaz**
 
@@ -324,16 +300,6 @@ La certificación se realizará en dos etapas:
 | Reacción esperada del sistema | El sistema envía los datos a la BD, se detecta un fallo, la operación es rechazada y se muestra mensaje de error. |
 | Criticidad | Alta |
 
-**EX003 – Datos incompletos**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El sistema intenta registrar la conversación con información incompleta. |
-| Acción del usuario | El sistema intenta completar el proceso de almacenamiento. |
-| Reacción esperada del sistema | El sistema valida los datos, detecta información faltante, detiene el proceso de almacenamiento y muestra mensaje de error. |
-| Criticidad | Media |
-
----
 
 #### RF007 – Asociar Archivo a la Conversación
 
@@ -356,27 +322,11 @@ La certificación se realizará en dos etapas:
 | Reacción esperada del sistema | El sistema intenta asociar el archivo, detecta el fallo, cancela la asociación y muestra mensaje de error. |
 | Criticidad | Media |
 
-**EX003 – Conversación no disponible, cerrada o inexistente**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El sistema intenta identificar la conversación para asociar el archivo. |
-| Acción del usuario | El usuario intenta cargar un archivo en una conversación. |
-| Reacción esperada del sistema | El sistema detecta que la conversación no es válida, detiene el proceso y solicita al usuario iniciar o seleccionar una conversación válida. |
-| Criticidad | Alta |
 
 ---
 
 #### RF008 – Exportación de Conversación
 
-**EX001 – Conversación no encontrada**
-
-| Campo | Detalle |
-|-------|---------|
-| Precondición | El sistema intenta recuperar la conversación para exportar. |
-| Acción del usuario | El usuario selecciona la opción "Exportar última conversación". |
-| Reacción esperada del sistema | La BD no encuentra la información. El sistema detiene el proceso y muestra mensaje de error. |
-| Criticidad | Alta |
 
 **EX002 – Error al generar el archivo**
 
@@ -417,10 +367,10 @@ La certificación se realizará en dos etapas:
 
 | Nombre | Rol | Responsabilidad |
 |--------|-----|-----------------|
-| Por definir | Jefe de Proyecto | Evaluar condiciones de término del proceso de pruebas junto al Arquitecto de Producto. |
-| Por definir | Arquitecto de Producto | Evaluar condiciones de término del proceso de pruebas junto al Jefe de Proyecto. |
-| Por definir | Analista Funcional | Resolución de incidencias de certificación en todos los módulos RF001–RF008. |
-| Por definir | Equipo de Testing | Generación y ejecución del plan de pruebas. Registro de defectos encontrados. |
+| Miguel de Jesus Sánchez Lopez| Arquitecto de Producto | Evaluar condiciones de término del proceso de pruebas. |
+| Andrea Jacqueline Soriano Romo | Analista Funcional | Resolución de incidencias de certificación en todos los módulos RF001–RF008. |
+| Juan Emmanuel Sánchez Castañón| Equipo de Testing | Generación y ejecución del plan de pruebas. Registro de defectos encontrados. |
+| Omar Krishnamurti Villavicencio Garcia| Equipo Mantenimiento |  Análisis técnico y corrección de defectos reportados. Soporte técnico ante fallos de infraestructura.|
 
 ---
 
