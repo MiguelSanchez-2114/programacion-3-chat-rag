@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from chat_rag.ui.views.login_view import LoginView
+from chat_rag.ui.views.chat_view import ChatView
 from chat_rag.ui.views.view import View
 
 class MainWindow(QMainWindow):
@@ -171,7 +172,11 @@ class MainWindow(QMainWindow):
         self.__load_views()
 
     def __load_views(self) -> None:
-        views = [LoginView(window=self)]
+        views = [
+            LoginView(window=self),
+            ChatView(window=self),
+        ]
+
         self.__views = {view.key: view for view in views}
         self.__current_view = views[0]
         self.__update_view()

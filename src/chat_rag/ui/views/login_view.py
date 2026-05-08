@@ -1,196 +1,255 @@
 import os
-
+from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog,
     QFrame,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMainWindow,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
-    QWidget,
 )
 
 from chat_rag.ui.views.view import View
 
+ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+LOGIN_BACKGROUND = ASSETS_DIR / "fondo_login.png"
+
+
 class LoginView(View):
     def __init__(self, window: QMainWindow):
         super().__init__(window, key="login", title="Login")
-        self.main_window.resize(500, 620)
-        self.main_window.setMinimumSize(460, 590)
+        self.main_window.resize(980, 680)
+        self.main_window.setMinimumSize(900, 540)
         self.build_ui()
 
     def build_ui(self) -> None:
         self.root = QVBoxLayout()
-        self.root.setContentsMargins(34, 28, 34, 28)
-        self.root.setSpacing(18)
+        self.root.setContentsMargins(22, 22, 22, 22)
+        self.root.setSpacing(0)
 
-        self.main_window.setStyleSheet(
-            """
-            QDialog {
-                background-color: #EEF4FF;
-                color: #1D2738;
-                font-family: Segoe UI, Arial, sans-serif;
-            }
-            QLabel#brandTitle {
-                color: #143A63;
-                font-size: 30px;
-                font-weight: 700;
-            }
-            QLabel#brandSubtitle {
-                color: #64748B;
-                font-size: 13px;
-            }
-            QFrame#loginCard {
-                background-color: #FFFFFF;
-                border: 1px solid #D7E3F5;
-                border-radius: 18px;
-            }
-            QLabel#sectionTitle {
-                color: #1D2738;
-                font-size: 22px;
-                font-weight: 650;
-            }
-            QLabel#fieldLabel {
-                color: #334155;
-                font-size: 13px;
-                font-weight: 600;
-            }
-            QLineEdit {
-                background-color: #F8FBFF;
-                border: 1px solid #CAD8EA;
-                border-radius: 10px;
-                color: #1D2738;
-                font-size: 14px;
-                padding: 10px 12px;
-            }
-            QLineEdit:focus {
-                border: 2px solid #2F80ED;
-                background-color: #FFFFFF;
-            }
-            QPushButton#loginButton {
-                background-color: #2563EB;
+        self.__apply_login_styles()
+
+
+        shell = QFrame()
+        shell.setObjectName("loginShell")
+        shell.setMinimumSize(900, 540)
+        shell.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        shell_layout = QVBoxLayout(shell)
+        shell_layout.setContentsMargins(8, 8, 8, 8)
+        shell_layout.setSpacing(0)
+
+        background = QFrame()
+        background.setObjectName("loginBackground")
+        background.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        background.setStyleSheet(
+            f"""
+            QFrame#loginBackground {{
                 border: none;
-                border-radius: 10px;
-                color: white;
-                font-size: 15px;
-                font-weight: 700;
-                padding: 12px;
-            }
-            QPushButton#loginButton:hover {
-                background-color: #1D4ED8;
-            }
-            QPushButton#loginButton:pressed {
-                background-color: #1E40AF;
-            }
-            QLabel#errorLabel {
-                color: #D64545;
-                font-size: 12px;
-                font-weight: 600;
-                min-height: 18px;
-            }
-            QLabel#hintLabel {
-                color: #7C8AA3;
-                font-size: 12px;
-            }
-            QWidget#accentBar {
-                background-color: #7C3AED;
-                border-radius: 6px;
-            }
+                border-radius: 18px;
+                border-image: url("{LOGIN_BACKGROUND.as_posix()}") 0 0 0 0 stretch stretch;
+            }}
             """
         )
 
-        header = QVBoxLayout()
-        header.setSpacing(4)
+        title = QLabel("DiNO Chat", background)
+        title.setObjectName("dinoTitle")
+        title.setAlignment(Qt.AlignCenter)
 
-        brand_title = QLabel("Chat RAG")
-        brand_title.setObjectName("brandTitle")
-        brand_title.setAlignment(Qt.AlignCenter)
+        slogan = QLabel('"Work smarter, not harder"', background)
+        slogan.setObjectName("dinoSlogan")
+        slogan.setAlignment(Qt.AlignCenter)
 
-        brand_subtitle = QLabel("Consulta documentos desde una experiencia tipo chat")
-        brand_subtitle.setObjectName("brandSubtitle")
-        brand_subtitle.setAlignment(Qt.AlignCenter)
+        footer = QLabel('"Brilliant ideas. Efficient results."', background)
+        footer.setObjectName("dinoFooter")
+        footer.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
-        header.addWidget(brand_title)
-        header.addWidget(brand_subtitle)
-        self.root.addLayout(header)
+        shell_layout.addWidget(background)
+        self.root.addWidget(shell)
 
-        card = QFrame()
-        card.setObjectName("loginCard")
-        card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(28, 28, 28, 24)
-        card_layout.setSpacing(14)
+        self.agregar_widget("login_shell", shell)
+        self.agregar_widget("login_background", background)
+        self.agregar_widget("title_label", title)
+        self.agregar_widget("slogan_label", slogan)
+        self.agregar_widget("footer_label", footer)
 
-        accent_row = QHBoxLayout()
-        accent_row.setAlignment(Qt.AlignCenter)
-        accent_bar = QWidget()
-        accent_bar.setObjectName("accentBar")
-        accent_bar.setFixedSize(76, 6)
-        accent_row.addWidget(accent_bar)
+        self.__build_login_controls(background)
+        self.__position_text(background)
+        self.__position_login_controls(background)
 
-        section_title = QLabel("Inicio de sesion")
-        section_title.setObjectName("sectionTitle")
-        section_title.setAlignment(Qt.AlignCenter)
+        previous_resize_event = background.resizeEvent
 
-        section_hint = QLabel("Ingresa tus credenciales para continuar")
-        section_hint.setObjectName("hintLabel")
-        section_hint.setAlignment(Qt.AlignCenter)
+        def resize_event(event):
+            previous_resize_event(event)
+            self.__position_text(background)
+            self.__position_login_controls(background)
 
-        card_layout.addLayout(accent_row)
-        card_layout.addWidget(section_title)
-        card_layout.addWidget(section_hint)
-        card_layout.addSpacing(8)
+        background.resizeEvent = resize_event
+        
+    def __build_login_controls(self, background: QFrame) -> None:
+        username_input = QLineEdit(background)
+        username_input.setObjectName("dinoInputOverlay")
+        username_input.setPlaceholderText("Enter your username")
 
-        user_label = QLabel("Usuario")
-        user_label.setObjectName("fieldLabel")
-        self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("Ej. admin")
-        self.username_input.setMinimumHeight(42)
+        password_input = QLineEdit(background)
+        password_input.setObjectName("dinoInputOverlay")
+        password_input.setPlaceholderText("Enter your password")
+        password_input.setEchoMode(QLineEdit.Password)
 
-        password_label = QLabel("Password")
-        password_label.setObjectName("fieldLabel")
-        self.password_input = QLineEdit()
-        self.password_input.setPlaceholderText("Escribe tu password")
-        self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setMinimumHeight(42)
+        login_button = QPushButton("Login", background)
+        login_button.setObjectName("dinoLoginButton")
+        login_button.clicked.connect(self._validate_login)
+        password_input.returnPressed.connect(self._validate_login)
 
-        self.error_label = QLabel("")
-        self.error_label.setObjectName("errorLabel")
-        self.error_label.setAlignment(Qt.AlignCenter)
+        error_label = QLabel("", background)
+        error_label.setObjectName("dinoError")
+        error_label.setAlignment(Qt.AlignCenter)
 
-        self.login_button = QPushButton("Ingresar")
-        self.login_button.setObjectName("loginButton")
-        self.login_button.setMinimumHeight(46)
-        self.login_button.clicked.connect(self._validate_login)
-        self.password_input.returnPressed.connect(self._validate_login)
+        self.agregar_widget("username_input", username_input)
+        self.agregar_widget("password_input", password_input)
+        self.agregar_widget("login_button", login_button)
+        self.agregar_widget("error_label", error_label)
+    def __position_text(self, background: QFrame) -> None:
+        width = background.width()
+        height = background.height()
 
-        card_layout.addWidget(user_label)
-        card_layout.addWidget(self.username_input)
-        card_layout.addWidget(password_label)
-        card_layout.addWidget(self.password_input)
-        card_layout.addWidget(self.error_label)
-        card_layout.addWidget(self.login_button)
+        title_width = int(width * 0.36)
+        title_x = (width - title_width) // 2
 
-        self.root.addWidget(card)
+        title = self.widgets["title_label"]
+        title.setFixedSize(title_width, max(44, int(height * 0.075)))
+        title.move(title_x, int(height * 0.045))
 
-        footer = QLabel("Proyecto academico - Programacion")
-        footer.setObjectName("hintLabel")
-        footer.setAlignment(Qt.AlignCenter)
-        self.root.addWidget(footer)
+        slogan = self.widgets["slogan_label"]
+        slogan.setFixedSize(title_width, max(28, int(height * 0.048)))
+        slogan.move(title_x, int(height * 0.118))
 
+        footer = self.widgets["footer_label"]
+        footer.setFixedSize(int(width * 0.38), max(24, int(height * 0.04)))
+        footer.move(int(width * 0.59), int(height * 0.94))
+
+        for key in ("title_label", "slogan_label", "footer_label"):
+            self.widgets[key].raise_()
+
+    def __position_login_controls(self, background: QFrame) -> None:
+        width = background.width()
+        height = background.height()
+
+        input_x = int(width * 0.388)
+        input_width = int(width * 0.255)
+        input_height = max(34, int(height * 0.065))
+        username_y = int(height * 0.735)
+        password_y = int(height * 0.866)
+
+        username_input = self.widgets["username_input"]
+        username_input.setFixedSize(input_width, input_height)
+        username_input.move(input_x, username_y)
+
+        password_input = self.widgets["password_input"]
+        password_input.setFixedSize(input_width, input_height)
+        password_input.move(input_x, password_y)
+
+        login_button = self.widgets["login_button"]
+        login_button.setFixedSize(int(width * 0.13), max(32, int(height * 0.052)))
+        login_button.move(int(width * 0.825), int(height * 0.806))
+
+        error_label = self.widgets["error_label"]
+        error_label.setFixedSize(input_width, 22)
+        error_label.move(input_x, min(height - 32, password_y + input_height + 10))
+
+        for key in (
+            "username_input",
+            "password_input",
+            "login_button",
+            "error_label",
+        ):
+            self.widgets[key].raise_()
     def _validate_login(self) -> None:
-        expected_user = os.getenv("APP_USERNAME", "admin")
-        expected_password = os.getenv("APP_PASSWORD", "admin123")
+        expected_user = "admin"
+        expected_password = "admin123"
 
-        username = self.username_input.text().strip()
-        password = self.password_input.text()
+        username_input = self.widgets["username_input"]
+        password_input = self.widgets["password_input"]
+        error_label = self.widgets["error_label"]
+
+        username = username_input.text().strip()
+        password = password_input.text()
 
         if username == expected_user and password == expected_password:
-            self.accept()
+            error_label.setText("")
+            self.main_window.route("chat")
             return
 
-        self.error_label.setText("Usuario o password incorrectos")
-        self.password_input.clear()
-        self.password_input.setFocus()
+        error_label.setText("Invalid username or password")
+        password_input.clear()
+        password_input.setFocus()
+
+    def __apply_login_styles(self) -> None:
+        self.main_window.setStyleSheet(
+            """
+            QMainWindow {
+                background-color: #F2F8FF;
+                font-family: Segoe UI, Arial, sans-serif;
+            }
+            QFrame#loginShell {
+                border-radius: 24px;
+                background: qlineargradient(
+                    x1: 0, y1: 0,
+                    x2: 1, y2: 1,
+                    stop: 0 #73C6D8,
+                    stop: 0.48 #F4D7EF,
+                    stop: 1 #5B8C66
+                );
+            }
+            QLabel#dinoTitle {
+                color: #2F2F2F;
+                font-size: 40px;
+                font-weight: 900;
+                letter-spacing: 0px;
+            }
+            QLabel#dinoSlogan {
+                color: #2F2F2F;
+                font-size: 23px;
+                font-weight: 850;
+                letter-spacing: 0px;
+            }
+            QLabel#dinoFooter {
+                color: #2F2F2F;
+                font-size: 15px;
+                font-weight: 850;
+            }
+            QLineEdit#dinoInputOverlay {
+                background-color: transparent;
+                border: none;
+                color: #2F2F2F;
+                font-size: 15px;
+                padding-left: 24px;
+                padding-right: 20px;
+            }
+            QLineEdit#dinoInputOverlay:focus {
+                border: none;
+                background-color: rgba(255, 255, 255, 35);
+            }
+            QPushButton#dinoLoginButton {
+                background-color: #8ACFE8;
+                border: none;
+                border-radius: 15px;
+                color: #FFFFFF;
+                font-size: 13px;
+                font-weight: 800;
+            }
+            QPushButton#dinoLoginButton:hover {
+                background-color: #72C3E2;
+            }
+            QPushButton#dinoLoginButton:pressed {
+                background-color: #5AB4D8;
+            }
+            QLabel#dinoError {
+                color: #C83D3D;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            """
+        )
