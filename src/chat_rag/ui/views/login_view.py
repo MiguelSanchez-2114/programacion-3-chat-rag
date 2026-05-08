@@ -62,9 +62,6 @@ class LoginView(View):
         slogan.setObjectName("dinoSlogan")
         slogan.setAlignment(Qt.AlignCenter)
 
-        footer = QLabel('"Brilliant ideas. Efficient results."', background)
-        footer.setObjectName("dinoFooter")
-        footer.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         shell_layout.addWidget(background)
         self.root.addWidget(shell)
@@ -73,7 +70,7 @@ class LoginView(View):
         self.agregar_widget("login_background", background)
         self.agregar_widget("title_label", title)
         self.agregar_widget("slogan_label", slogan)
-        self.agregar_widget("footer_label", footer)
+        
 
         self.__build_login_controls(background)
         self.__position_text(background)
@@ -127,12 +124,9 @@ class LoginView(View):
         slogan.setFixedSize(title_width, max(28, int(height * 0.048)))
         slogan.move(title_x, int(height * 0.118))
 
-        footer = self.widgets["footer_label"]
-        footer.setFixedSize(int(width * 0.38), max(24, int(height * 0.04)))
-        footer.move(int(width * 0.59), int(height * 0.94))
-
-        for key in ("title_label", "slogan_label", "footer_label"):
+        for key in ("title_label", "slogan_label"):
             self.widgets[key].raise_()
+
 
     def __position_login_controls(self, background: QFrame) -> None:
         width = background.width()
