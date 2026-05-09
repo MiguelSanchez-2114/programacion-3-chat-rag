@@ -246,7 +246,7 @@ La certificación se realizará en dos etapas:
 | Reacción esperada del sistema | El sistema recibe el archivo, detecta que el formato no es válido, lo rechaza y muestra mensaje de error. |
 | Criticidad | Media |
 
-**EX003 – Archivo demasiado grande**
+**EX002 – Archivo demasiado grande**
 
 | Campo | Detalle |
 |-------|---------|
@@ -269,7 +269,7 @@ La certificación se realizará en dos etapas:
 | Criticidad | Alta |
 
 
-**EX003 – Error en la actualización de la interfaz**
+**EX002 – Error en la actualización de la interfaz**
 
 | Campo | Detalle |
 |-------|---------|
