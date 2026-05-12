@@ -4,11 +4,31 @@ class ModelBase():
     __table_name: str
     __model: dict[str, object]
     __db_name: str
+    __schema: str
 
     def __init__(self, table_name: str, model: dict[str, object] = None):
         self.__table_name = table_name
         self.__model = model
-        self.__db_name = BaseDeDatos.instancia().db_name
+        self.__db_name = None
+        self.__schema = None
+
+    @property
+    def db_name(self) -> str:
+        db_name = self.__dict__.get("_ModelBase__db_name_cache")
+        if db_name is None:
+            db_name = BaseDeDatos.instancia().db_name
+            self.__dict__["_ModelBase__db_name_cache"] = db_name
+            self.__db_name = db_name
+        return db_name
+
+    @property
+    def schema(self) -> str:
+        schema = self.__dict__.get("_ModelBase__schema_cache")
+        if schema is None:
+            schema = BaseDeDatos.instancia().schema
+            self.__dict__["_ModelBase__schema_cache"] = schema
+            self.__schema = schema
+        return schema
 
     @property
     def table_name(self) -> str:
@@ -33,9 +53,9 @@ class ModelBase():
     @staticmethod
     def obtener_todos(table_name: str) -> list[dict[str, object]]:
         conexion = ModelBase.__obtener_conexion()
-        db_name = ModelBase.db_name()
+        schema = ModelBase.schema
         try:
-            sql = f"SELECT * FROM {db_name}.{table_name}"
+            sql = f"SELECT * FROM {schema}.{table_name}"
             cursor = conexion.cursor()
             cursor.execute(sql)
             records = cursor.fetchall()
@@ -61,7 +81,7 @@ class ModelBase():
             valores = tuple(datos.values())
 
             sql = f"""
-                INSERT INTO {self.__db_name}.{self.table_name} ({columnas})
+                INSERT INTO {self.schema}.{self.table_name} ({columnas})
                 VALUES ({placeholders})
                 RETURNING id;
             """
@@ -95,7 +115,7 @@ class ModelBase():
             valores = list(datos.values()) + [id]
 
             sql = f"""
-                UPDATE {self.__db_name}.{self.table_name}
+                UPDATE {self.schema}.{self.table_name}
                 SET {asignaciones}
                 WHERE id = %s
             """
@@ -120,7 +140,7 @@ class ModelBase():
             if id_registro is None:
                 print("No se puede eliminar un registro sin ID.")
                 return False
-            sql = f"DELETE FROM {self.__db_name}.{self.table_name} WHERE id = %s"
+            sql = f"DELETE FROM {self.schema}.{self.table_name} WHERE id = %s"
             cursor = conexion.cursor()
             cursor.execute(sql, (id_registro,))
             conexion.commit()
@@ -135,7 +155,7 @@ class ModelBase():
     def obtener_por_id(self, id: int):
         conexion = ModelBase.__obtener_conexion()
         try:
-            sql = f"SELECT * FROM {self.__db_name}.{self.table_name} WHERE id = %s"
+            sql = f"SELECT * FROM {self.schema}.{self.table_name} WHERE id = %s"
             cursor = conexion.cursor()
             cursor.execute(sql, (id,))
             record = cursor.fetchone()

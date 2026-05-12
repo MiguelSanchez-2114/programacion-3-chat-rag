@@ -1,7 +1,7 @@
 from chat_rag.db.models.model_base import ModelBase
 
 class ConversacionModel(ModelBase):
-    __table_name = "conversasion"
+    __table_name = "conversacion"
 
     def __init__(self, model: dict[str, object] = None):
         self.__id: int = model.get("id", None) if model else None
@@ -13,8 +13,8 @@ class ConversacionModel(ModelBase):
 
     @staticmethod
     def obtener_todos() -> list["ConversacionModel"]:
-        conversasions = ModelBase.obtener_todos(ConversacionModel.__table_name)
-        return [ConversacionModel(model=conversasion) for conversasion in conversasions]
+        conversaciones = ModelBase.obtener_todos(ConversacionModel.__table_name)
+        return [ConversacionModel(model=conversacion) for conversacion in conversaciones]
 
     @property
     def id(self) -> int:

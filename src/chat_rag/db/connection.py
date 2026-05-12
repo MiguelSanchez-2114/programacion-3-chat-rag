@@ -1,10 +1,12 @@
 from psycopg2 import connect
 from chat_rag.config import config
+import os
 
 class BaseDeDatos:
     __instancia = None
     isConectada = False
     db_name = None
+    schema = None
     
     @staticmethod
     def instancia():
@@ -15,9 +17,13 @@ class BaseDeDatos:
     
     def __iniciar_base(self):
         conn = self.conectar()
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        path = f"{current_dir}/{self.db_name}.sql"
+        print(f"Ejecutando script SQL desde: {path}")
         if conn is not None:
             cursor = conn.cursor()
-            with open(f"{self.db_name}.sql", "r") as f:
+            with open(path, "r") as f:
                 sql = f.read()
                 cursor.execute(sql)
                 conn.commit()
@@ -29,6 +35,7 @@ class BaseDeDatos:
         if self.isConectada:
             return self.__instancia.conn
         try:
+            print("Conectando a la base de datos con esta configuracion:", config.db)
             self.conn = connect(
                 host=config.db['host'],
                 database=config.db['name'],
@@ -38,6 +45,7 @@ class BaseDeDatos:
             )
             self.isConectada = True
             self.db_name = config.db['name']
+            self.schema = config.db['schema']
             return self.conn
         except Exception as e:
             print("Error al conectar a la base de datos:", e)
