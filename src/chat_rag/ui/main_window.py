@@ -2,15 +2,24 @@ import sys
 
 from PySide6.QtWidgets import (
     QApplication,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
     QBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QTextEdit,
     QVBoxLayout,
     QWidget
 )
 
 from PySide6.QtCore import Qt
 
+from chat_rag.ui.views.login_view import LoginView
+from chat_rag.ui.views.chat_view import ChatView
 from chat_rag.ui.views.view import View
 
 class MainWindow(QMainWindow):
@@ -25,14 +34,30 @@ class MainWindow(QMainWindow):
         self.__main_layout = None
         self.setWindowTitle(self.__title)
         self.resize(980, 680)
-
+        self.loaded_file_name = None
+    
         self._build_ui()
 
     def _build_ui(self) -> None:
-        root = QWidget()
-        self.setCentralWidget(root)
+        self.setStyleSheet(
+            """
+            QMainWindow {
+                background-color: #F4F7FB;
+                color: #172033;
+                font-family: Segoe UI, Arial, sans-serif;
+            }
+            QWidget#root {
+                background-color: #F4F7FB;
+            }
+            """
+        )
 
+        root = QWidget()        
+        root.setObjectName("root")
+        self.setCentralWidget(root)
         self.__main_layout = QVBoxLayout()
+        self.__main_layout.setContentsMargins(18, 18, 18, 18)
+        self.__main_layout.setSpacing(16)
         root.setLayout(self.__main_layout)
 
         # Texto de referencia.
@@ -40,11 +65,14 @@ class MainWindow(QMainWindow):
         workarea_label.setStyleSheet("font-size: 16px; font-weight: bold;")
         workarea_label.setAlignment(Qt.AlignCenter)
         self.__main_layout.addWidget(workarea_label)
+        self.__load_views()
 
-        # self.__load_views()
-    
     def __load_views(self) -> None:
-        views = []
+        views = [
+            LoginView(window=self),
+            ChatView(window=self),
+        ]
+
         self.__views = {view.key: view for view in views}
         self.__current_view = views[0]
         self.__update_view()
