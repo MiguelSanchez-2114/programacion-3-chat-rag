@@ -114,8 +114,6 @@ pip install -r requirements.txt
 Variables esperadas:
 
 ```env
-APP_USERNAME=admin
-APP_PASSWORD=admin123
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=chat_rag
@@ -140,11 +138,6 @@ Desde la raiz del proyecto:
 ```bash
 python src/main.py
 ```
-
-Credenciales por defecto (si no cambias `.env`):
-
-- Usuario: `admin`
-- Password: `admin123`
 
 ## Notas tecnicas
 
