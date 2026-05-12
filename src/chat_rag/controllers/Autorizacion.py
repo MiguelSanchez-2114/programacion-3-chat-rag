@@ -1,8 +1,7 @@
-# auth/autorizacion.py
 import hashlib
 from datetime import datetime
 from typing import Optional
-from .Usuario import Usuario
+from .usuario import Usuario
 
 from chat_rag.db.models.usuario_model import UsuarioModel  
 
