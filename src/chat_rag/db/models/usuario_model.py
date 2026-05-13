@@ -1,5 +1,7 @@
 from chat_rag.db.models.model_base import ModelBase
 from datetime import datetime
+from chat_rag.db.connection import BaseDeDatos
+from typing import Optional
 
 class UsuarioModel(ModelBase):
     __table_name = "usuario"
@@ -60,3 +62,26 @@ class UsuarioModel(ModelBase):
     def creado_en(self, value: datetime) -> None:
         self.__creado_en = value
         self.model["creado_en"] = value
+
+    @staticmethod
+    def obtener_por_username(username: str) -> Optional['UsuarioModel']:
+        conexion = ModelBase._ModelBase__obtener_conexion()
+        schema = BaseDeDatos.instancia().schema
+        
+        try:
+            sql = f"""
+                SELECT id, username, password, creado_en 
+                FROM {schema}.usuario 
+                WHERE username = %s
+            """
+            cursor = conexion.cursor()
+            cursor.execute(sql, (username,))
+            record = cursor.fetchone()
+            
+            if record:
+                columnas = [desc[0] for desc in cursor.description]
+                return UsuarioModel(dict(zip(columnas, record)))
+            return None
+        except Exception as e:
+            print(f"Error al obtener usuario por username: {e}")
+            return None

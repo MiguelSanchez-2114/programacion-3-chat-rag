@@ -13,44 +13,27 @@ class Autorizacion:
 
     def _hash_password(self, password: str) -> str:
         return hashlib.sha256(f"{self._salt}{password}".encode()).hexdigest()
-
+    
     def login(self, username: str, password: str) -> Optional[Usuario]:
         try:
-            usuarios = UsuarioModel.obtener_todos()
-            for user_obj in usuarios:
-                if user_obj.username == username and user_obj.password == self._hash_password(password):
-                    creado_en = user_obj.creado_en
-                    if isinstance(creado_en, str):
-                        creado_en = datetime.fromisoformat(creado_en)
+            user_obj = UsuarioModel.obtener_por_username(username)
+            
+            if user_obj and user_obj.password == self._hash_password(password):
+                creado_en = user_obj.creado_en
+                if isinstance(creado_en, str):
+                    creado_en = datetime.fromisoformat(creado_en)
 
-                    self._usuario_sesion = Usuario(
-                        id=user_obj.id,
-                        username=user_obj.username,
-                        creado_en=creado_en
-                    )
-                    return self._usuario_sesion
+                # FIX: Guardar en sesión antes de retornar
+                self._usuario_sesion = Usuario(
+                    id=user_obj.id,
+                    username=user_obj.username,
+                    creado_en=creado_en
+                )
+                return self._usuario_sesion
             return None
         except Exception as e:
             print(f"Error en login: {e}")
             return None
-
-    def registrar(self, username: str, password: str) -> bool:
-        try:
-            usuarios = UsuarioModel.obtener_todos()
-            if any(u.username == username.strip() for u in usuarios):
-                print("El nombre de usuario ya esta registrado.")
-                return False
-
-            nuevo = UsuarioModel({
-                "username": username.strip(),
-                "password": self._hash_password(password),
-                "creado_en": datetime.now()
-            })
-            nuevo_id = nuevo.guardar()
-            return nuevo_id is not None
-        except Exception as e:
-            print(f"Error al registrar usuario: {e}")
-            return False
 
     def cerrar_sesion(self) -> None:
         self._usuario_sesion = None
@@ -62,11 +45,8 @@ class Autorizacion:
     
 
 if __name__ == "__main__":
-    print("Iniciando prueba directa...")
+    print("1.- Iniciando prueba directa...")
     auth = Autorizacion()
-
-    print("\n1. Registro de prueba:")
-    auth.registrar("usuario_prueba", "clave123")
 
     print("\n2. Login de prueba:")
     usuario = auth.login("usuario_prueba", "clave123")
@@ -74,6 +54,10 @@ if __name__ == "__main__":
         print(f"   Exito: {usuario.username} (ID: {usuario.id})")
     else:
         print("   Fallo")
-
+    print("\n3. Usuario actual:")
+    print(f"   {auth.usuario_actual}")
+    print("\n4. Cerrando sesión...")
     auth.cerrar_sesion()
+    print("\n5. Usuario actual después de cerrar sesión:")
+    print(f"   {auth.usuario_actual}")
     print("\nPrueba terminada.")
