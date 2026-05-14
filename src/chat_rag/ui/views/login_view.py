@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from chat_rag.ui.views.view import View
+from chat_rag.controllers.autorizacion import Autorizacion
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
@@ -33,7 +34,7 @@ class LoginView(View):
         super().__init__(window, key="login", title="Login")
         self.main_window.resize(CANVAS_WIDTH + 180, CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
-
+        self.auth = Autorizacion()
         self.build_ui()
 
     def build_ui(self) -> None:
@@ -262,7 +263,9 @@ class LoginView(View):
         username = username_input.text().strip()
         password = password_input.text()
 
-        if username == expected_user and password == expected_password:
+        usuario = self.auth.login(username=username, password=password)
+
+        if usuario:
             error_label.setText("")
             self.main_window.route("chat")
             return

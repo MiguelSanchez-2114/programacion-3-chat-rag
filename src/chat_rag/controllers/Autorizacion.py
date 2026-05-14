@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
 from typing import Optional
-from .usuario import Usuario
+from chat_rag.controllers.usuario import Usuario
 
 from chat_rag.db.models.usuario_model import UsuarioModel  
 
@@ -41,23 +41,3 @@ class Autorizacion:
     @property
     def usuario_actual(self) -> Optional[Usuario]:
         return self._usuario_sesion
-    
-    
-
-if __name__ == "__main__":
-    print("1.- Iniciando prueba directa...")
-    auth = Autorizacion()
-
-    print("\n2. Login de prueba:")
-    usuario = auth.login("usuario_prueba", "clave123")
-    if usuario:
-        print(f"   Exito: {usuario.username} (ID: {usuario.id})")
-    else:
-        print("   Fallo")
-    print("\n3. Usuario actual:")
-    print(f"   {auth.usuario_actual}")
-    print("\n4. Cerrando sesión...")
-    auth.cerrar_sesion()
-    print("\n5. Usuario actual después de cerrar sesión:")
-    print(f"   {auth.usuario_actual}")
-    print("\nPrueba terminada.")
