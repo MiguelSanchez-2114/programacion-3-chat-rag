@@ -19,3 +19,7 @@ env/
 .DS_Store
 .vscode/
 .Rhistory
+
+# JetBrains IDEs
+.idea/
+*.iml
