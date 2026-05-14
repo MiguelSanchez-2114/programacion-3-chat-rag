@@ -1,15 +1,26 @@
 import hashlib
 from datetime import datetime
 from typing import Optional
-from .usuario import Usuario
+from chat_rag.controllers.usuario import Usuario
 
 from chat_rag.db.models.usuario_model import UsuarioModel  
 
 class Autorizacion:
 
+    _instancia: Optional["Autorizacion"] = None
+
+    def __new__(cls, salt: str = "chat_rag_seguro_2026"):
+        if cls._instancia is None:
+            cls._instancia = super().__new__(cls)
+            cls._instancia._inicializado = False
+        return cls._instancia
+
     def __init__(self, salt: str = "chat_rag_seguro_2026"):
+        if getattr(self, "_inicializado", False):
+            return
         self._usuario_sesion: Optional[Usuario] = None
         self._salt = salt
+        self._inicializado = True
 
     def _hash_password(self, password: str) -> str:
         return hashlib.sha256(f"{self._salt}{password}".encode()).hexdigest()
@@ -41,23 +52,3 @@ class Autorizacion:
     @property
     def usuario_actual(self) -> Optional[Usuario]:
         return self._usuario_sesion
-    
-    
-
-if __name__ == "__main__":
-    print("1.- Iniciando prueba directa...")
-    auth = Autorizacion()
-
-    print("\n2. Login de prueba:")
-    usuario = auth.login("usuario_prueba", "clave123")
-    if usuario:
-        print(f"   Exito: {usuario.username} (ID: {usuario.id})")
-    else:
-        print("   Fallo")
-    print("\n3. Usuario actual:")
-    print(f"   {auth.usuario_actual}")
-    print("\n4. Cerrando sesión...")
-    auth.cerrar_sesion()
-    print("\n5. Usuario actual después de cerrar sesión:")
-    print(f"   {auth.usuario_actual}")
-    print("\nPrueba terminada.")
