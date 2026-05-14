@@ -53,7 +53,7 @@ class ModelBase():
     @staticmethod
     def obtener_todos(table_name: str) -> list[dict[str, object]]:
         conexion = ModelBase.__obtener_conexion()
-        schema = ModelBase.schema
+        schema = BaseDeDatos.instancia().schema
         try:
             sql = f"SELECT * FROM {schema}.{table_name}"
             cursor = conexion.cursor()
