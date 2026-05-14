@@ -35,7 +35,6 @@ class BaseDeDatos:
         if self.isConectada:
             return self.__instancia.conn
         try:
-            print("Conectando a la base de datos con esta configuracion:", config.db)
             self.conn = connect(
                 host=config.db['host'],
                 database=config.db['name'],
