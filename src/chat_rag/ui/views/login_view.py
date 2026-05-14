@@ -108,11 +108,11 @@ class LoginView(View):
         self.__position_text(background)
         self.__position_login_controls(background)
 
-
     def __build_login_controls(self, background: QFrame) -> None:
         username_input = QLineEdit(background)
         username_input.setObjectName("dinoInputOverlay")
         username_input.setPlaceholderText("Enter your username")
+        username_input.focusInEvent = lambda event: self.__clear_error_message()
 
         password_input = QLineEdit(background)
         password_input.setObjectName("dinoInputOverlay")
@@ -126,13 +126,12 @@ class LoginView(View):
 
         error_label = QLabel("", background)
         error_label.setObjectName("dinoError")
-        error_label.setAlignment(Qt.AlignCenter)
+        error_label.setAlignment(Qt.AlignLeft)
 
         self.agregar_widget("username_input", username_input)
         self.agregar_widget("password_input", password_input)
         self.agregar_widget("login_button", login_button)
         self.agregar_widget("error_label", error_label)
-    
     
     def __build_image(
         self,
@@ -166,7 +165,6 @@ class LoginView(View):
         for index in range(1, 6):
             self.__build_image(background, f"left_blue_ghost_{index}", BLUE_GHOST_IMAGE, 58, 58)
             self.__build_image(background, f"right_blue_ghost_{index}", BLUE_GHOST_IMAGE, 58, 58)
-
 
     def __position_assets(self) -> None:
         self.widgets["cloud_left"].move(60, 70)
@@ -213,7 +211,6 @@ class LoginView(View):
         ):
             self.widgets[key].raise_()
 
-        
     def __position_text(self, background: QFrame) -> None:
         title = self.widgets["title_label"]
         title.setFixedSize(900, 105)
@@ -223,8 +220,7 @@ class LoginView(View):
         slogan.setFixedSize(940, 58)
         slogan.move(254, 128)
         for key in ("title_label", "slogan_label"):
-            self.widgets[key].raise_()
-            
+            self.widgets[key].raise_()   
 
     def __position_login_controls(self, background: QFrame) -> None:
         username_input = self.widgets["username_input"]
@@ -241,7 +237,7 @@ class LoginView(View):
 
         error_label = self.widgets["error_label"]
         error_label.setFixedSize(430, 24)
-        error_label.move(560, 680)
+        error_label.move(780, 620)
 
         for key in (
             "username_input",
@@ -250,12 +246,8 @@ class LoginView(View):
             "error_label",
         ):
             self.widgets[key].raise_()
-
-            
+        
     def _validate_login(self) -> None:
-        expected_user = "admin"
-        expected_password = "admin123"
-
         username_input = self.widgets["username_input"]
         password_input = self.widgets["password_input"]
         error_label = self.widgets["error_label"]
@@ -270,7 +262,7 @@ class LoginView(View):
             self.main_window.route("chat")
             return
 
-        error_label.setText("Invalid username or password")
+        error_label.setText("Usuario o contraseña incorrectos")
         password_input.clear()
         password_input.setFocus()
 
@@ -372,3 +364,7 @@ class LoginView(View):
             }
             """
         )
+
+    def __clear_error_message(self) -> None:
+        error_label = self.widgets["error_label"]
+        error_label.setText("")
