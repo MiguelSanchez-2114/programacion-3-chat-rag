@@ -1,3 +1,4 @@
+from chat_rag.db.connection import BaseDeDatos
 from chat_rag.db.models.model_base import ModelBase
 
 class MensajeModel(ModelBase):
@@ -21,6 +22,32 @@ class MensajeModel(ModelBase):
     def obtener_todos() -> list["MensajeModel"]:
         mensajes = ModelBase.obtener_todos(MensajeModel.__table_name)
         return [MensajeModel(model=mensaje) for mensaje in mensajes]
+    
+    @staticmethod
+    def obtener_ultimos_mensajes(usuario_id: int, cantidad: int = 15) -> list["MensajeModel"]:
+        conexion = ModelBase._ModelBase__obtener_conexion()
+        schema = BaseDeDatos.instancia().schema
+        
+        try:
+            sql = f"""
+                SELECT m.id, m.contenido, m.emisor, m.fecha, m.id_conversacion
+                FROM {schema}.mensaje m
+                INNER JOIN {schema}.conversacion c ON m.id_conversacion = c.id
+                WHERE c.id_usuario = %s
+                ORDER BY m.fecha DESC
+                LIMIT %s
+            """
+            cursor = conexion.cursor()
+            cursor.execute(sql, (usuario_id, cantidad))
+            record = cursor.fetchall()
+            mensajes = []
+            columnas = [desc[0] for desc in cursor.description]
+            for rec in record:
+                mensajes.append(MensajeModel(dict(zip(columnas, rec))))
+            return mensajes
+        except Exception as e:
+            print(f"Error al obtener los últimos mensajes: {e}")
+            return None
 
     @property
     def id(self) -> int:
