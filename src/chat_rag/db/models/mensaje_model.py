@@ -47,7 +47,7 @@ class MensajeModel(ModelBase):
             return mensajes
         except Exception as e:
             print(f"Error al obtener los últimos mensajes: {e}")
-            return None
+            return []
 
     @property
     def id(self) -> int:
