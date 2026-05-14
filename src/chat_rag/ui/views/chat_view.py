@@ -31,8 +31,11 @@ CHAT_CANVAS_WIDTH = 1447
 CHAT_CANVAS_HEIGHT = 736
 CACTUS_PACMAN_IMAGE = "cactus_pacman_transparente.png"
 GRASS_IMAGE = "crayon_verde_transparente.png"
+YELLOW_GRASS_IMAGE = "pasto_amarillo_transparente.png"
 DINO_IMAGE = "dino_transparente.png"
+DINO_PURPLE_IMAGE = "dino_morado_transparente.png"
 BLUE_GHOST_IMAGE = "fantasma_azul_transparente.png"
+RED_GHOST_IMAGE = "fantasma_rojo_pixel_transparente.png"
 
 
 class GradientTitleLabel(QLabel):
@@ -67,6 +70,73 @@ class GradientTitleLabel(QLabel):
         gradient.setColorAt(1.00, QColor("#5DEFE0"))
 
         painter.fillPath(path, gradient)
+
+
+class ConfettiLayer(QFrame):
+    """Decorative confetti painted directly on the chat canvas."""
+
+    DOTS = (
+        (155, 146, 22, "#FFB3D1"),
+        (232, 124, 20, "#FF8A00"),
+        (318, 148, 22, "#FFB3D1"),
+        (386, 132, 22, "#FF8A00"),
+        (910, 154, 22, "#FFB3D1"),
+        (962, 172, 22, "#9DEBFF"),
+        (1088, 184, 22, "#FF8A00"),
+        (112, 314, 22, "#FFB3D1"),
+        (220, 288, 22, "#9DEBFF"),
+        (318, 296, 22, "#FFE899"),
+        (502, 372, 22, "#FFE899"),
+        (545, 318, 22, "#FF8A00"),
+        (802, 226, 22, "#FFB3D1"),
+        (925, 226, 22, "#FFE899"),
+        (984, 220, 22, "#FFB3D1"),
+        (210, 338, 22, "#FFB3D1"),
+        (332, 396, 22, "#9DEBFF"),
+        (448, 470, 22, "#FFB3D1"),
+        (650, 500, 22, "#FF8A00"),
+        (925, 475, 22, "#FFB3D1"),
+        (1030, 500, 22, "#9DEBFF"),
+        (1092, 528, 22, "#FFE899"),
+        (1125, 528, 22, "#FF8A00"),
+    )
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(Qt.NoPen)
+
+        for x, y, size, color in self.DOTS:
+            painter.setBrush(QColor(color))
+            painter.drawEllipse(QRectF(x, y, size, size))
+
+
+class DecorativePanelFrame(QFrame):
+    """Rounded purple frame around the fixed chat canvas."""
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        pen = QPen(QColor("#B846D2"), 5)
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+        painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        painter.drawRoundedRect(QRectF(4, 4, self.width() - 8, self.height() - 8), 28, 28)
 
 
 class MessageBubble(QFrame):
@@ -492,10 +562,10 @@ class ChatView(View):
 
         shell = QFrame()
         shell.setObjectName("chatShell")
-        shell.setFixedSize(CHAT_CANVAS_WIDTH + 16, CHAT_CANVAS_HEIGHT + 16)
+        shell.setFixedSize(CHAT_CANVAS_WIDTH + 46, CHAT_CANVAS_HEIGHT + 46)
 
         shell_layout = QVBoxLayout(shell)
-        shell_layout.setContentsMargins(8, 8, 8, 8)
+        shell_layout.setContentsMargins(23, 23, 23, 23)
         shell_layout.setSpacing(0)
 
         background = QFrame()
@@ -531,8 +601,18 @@ class ChatView(View):
         self.__add_message_bubble("Perfecto, quiero una vista de chat con estilo dibujado a mano.", "user")
 
     def __build_decorations(self, background: QFrame) -> None:
-        self.__build_image(background, "title_dino_image", DINO_IMAGE, 52, 52)
+        confetti_layer = ConfettiLayer(background)
+        confetti_layer.setFixedSize(CHAT_CANVAS_WIDTH, CHAT_CANVAS_HEIGHT)
+
+        panel_frame = DecorativePanelFrame(background)
+        panel_frame.setFixedSize(CHAT_CANVAS_WIDTH, CHAT_CANVAS_HEIGHT)
+
+        self.agregar_widget("confetti_layer", confetti_layer)
+        self.agregar_widget("panel_frame", panel_frame)
+
+        self.__build_image(background, "title_red_ghost_image", RED_GHOST_IMAGE, 62, 52)
         self.__build_image(background, "title_cactus_image", CACTUS_PACMAN_IMAGE, 115, 84)
+        self.__build_image(background, "title_grass_image", YELLOW_GRASS_IMAGE, 430, 56)
 
     def __build_image(
         self,
@@ -602,13 +682,22 @@ class ChatView(View):
         self.widgets["chat_title"].raise_()
 
     def __position_decorations(self) -> None:
-        title_dino = self.widgets["title_dino_image"]
-        title_dino.move(1004, 42)
+        self.widgets["confetti_layer"].move(0, 0)
+        self.widgets["confetti_layer"].raise_()
+
+        self.widgets["panel_frame"].move(0, 0)
+        self.widgets["panel_frame"].raise_()
+
+        title_red_ghost = self.widgets["title_red_ghost_image"]
+        title_red_ghost.move(998, 42)
 
         title_cactus = self.widgets["title_cactus_image"]
         title_cactus.move(1055, 28)
 
-        for key in ("title_dino_image", "title_cactus_image"):
+        title_grass = self.widgets["title_grass_image"]
+        title_grass.move(505, 94)
+
+        for key in ("title_red_ghost_image", "title_cactus_image", "title_grass_image"):
             self.widgets[key].raise_()
 
         self.widgets["chat_title"].raise_()
@@ -643,7 +732,7 @@ class ChatView(View):
         icon = QLabel()
         icon.setFixedSize(58, 58)
         icon.setScaledContents(True)
-        icon_file = BLUE_GHOST_IMAGE if sender == "bot" else DINO_IMAGE
+        icon_file = BLUE_GHOST_IMAGE if sender == "bot" else DINO_PURPLE_IMAGE
         icon.setPixmap(QPixmap(str(ASSETS_DIR / icon_file)))
 
         if sender == "user":
@@ -695,23 +784,23 @@ class ChatView(View):
         self.main_window.setStyleSheet(
             """
             QMainWindow {
-                background-color: #63D97B;
+                background-color: #4AAFEF;
                 font-family: Segoe UI, Arial, sans-serif;
             }
 
             QWidget#root {
-                background-color: #63D97B;
+                background-color: #4AAFEF;
             }
 
             QFrame#chatShell {
-                border-radius: 24px;
-                background-color: #63D97B;
+                border-radius: 30px;
+                background-color: #4AAFEF;
             }
 
             QFrame#chatBackground {
-                background-color: #63D97B;
+                background-color: #A9F0B8;
                 border: none;
-                border-radius: 0px;
+                border-radius: 24px;
             }
 
             QLabel#chatTitle {
@@ -719,16 +808,65 @@ class ChatView(View):
             }
 
             QScrollArea#conversationArea {
-                background-color: #63D97B;
+                background-color: transparent;
                 border: none;
             }
 
+            QScrollArea#conversationArea QScrollBar:vertical {
+                background-color: transparent;
+                width: 22px;
+                margin: 20px 0px 20px 0px;
+            }
+
+            QScrollArea#conversationArea QScrollBar::handle:vertical {
+                background: qlineargradient(
+                    x1: 0, y1: 0,
+                    x2: 0, y2: 1,
+                    stop: 0 #7AF7E1,
+                    stop: 0.35 #6B57FF,
+                    stop: 0.70 #F38BDA,
+                    stop: 1 #5DEFE0
+                );
+                border-radius: 10px;
+                min-height: 92px;
+            }
+
+            QScrollArea#conversationArea QScrollBar::add-line:vertical,
+            QScrollArea#conversationArea QScrollBar::sub-line:vertical {
+                background-color: transparent;
+                border: none;
+                height: 18px;
+            }
+
+            QScrollArea#conversationArea QScrollBar::up-arrow:vertical {
+                image: none;
+                width: 0px;
+                height: 0px;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-bottom: 9px solid #6B57FF;
+            }
+
+            QScrollArea#conversationArea QScrollBar::down-arrow:vertical {
+                image: none;
+                width: 0px;
+                height: 0px;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 9px solid #F38BDA;
+            }
+
+            QScrollArea#conversationArea QScrollBar::add-page:vertical,
+            QScrollArea#conversationArea QScrollBar::sub-page:vertical {
+                background-color: transparent;
+            }
+
             QScrollArea#conversationArea > QWidget {
-                background-color: #63D97B;
+                background-color: transparent;
             }
 
             QWidget#messagesContainer {
-                background-color: #63D97B;
+                background-color: transparent;
             }
 
             QTextEdit#messageInput {
@@ -780,7 +918,7 @@ class ChatView(View):
                     stop: 0.70 #F6BBD0,
                     stop: 1 #8FEFD6
                 );
-                border: 5px solid #8FEFD6;
+                border: 4px dashed #7E4DFF;
                 border-radius: 26px;
             }
 
