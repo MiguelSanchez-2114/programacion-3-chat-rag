@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-if TYPE_CHECKING:
-    from chat_rag.db.models.usuario_model import UsuarioModel  
+from chat_rag.db.models.usuario_model import UsuarioModel  
 
 class Usuario:
     

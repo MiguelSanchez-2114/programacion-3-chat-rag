@@ -80,13 +80,22 @@ class MainWindow(QMainWindow):
     def __update_view(self) -> None:
         if self.__current_view is not None:
             # Limpiar el layout actual.
-            while self.__main_layout.count():
-                child = self.__main_layout.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
+            self.__clear_layout(self.__main_layout)
             # Agregar la vista actual al layout.
             self.__main_layout.addLayout(self.__current_view.root)
             self.__update_title(self.__current_view.title)
+
+    def __clear_layout(self, layout: QBoxLayout) -> None:
+        while layout.count():
+            child = layout.takeAt(0)
+            widget = child.widget()
+            child_layout = child.layout()
+
+            if widget is not None:
+                widget.deleteLater()
+
+            if child_layout is not None:
+                self.__clear_layout(child_layout)
 
     def __update_title(self, subtitle: str) -> None:
         title = f"{self.__title}"
