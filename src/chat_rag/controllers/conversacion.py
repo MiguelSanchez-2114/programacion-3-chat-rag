@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from chat_rag.db.models.conversacion_model import ConversacionModel
 from chat_rag.db.models.mensaje_model import MensajeModel
@@ -40,7 +40,7 @@ class Conversacion:
             self.id = conversacion.id
             self.id_usuario = conversacion.id_usuario
         except Exception as e:
-            raise ValueError(f"[2]: Error al iniciar conversación: {e}")
+            raise ValueError(f"Error al iniciar conversación: {e}")
         
     def agregar_mensaje(self, contenido: str, emisor: str):
         if self.id is None:
