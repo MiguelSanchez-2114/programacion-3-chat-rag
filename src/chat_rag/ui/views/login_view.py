@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from chat_rag.ui.views.view import View
+from chat_rag.controllers.autorizacion import Autorizacion
 
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
@@ -253,7 +254,7 @@ class LoginView(View):
         super().__init__(window, key="login", title="Login")
         self.main_window.resize(CANVAS_WIDTH + 180, CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
-
+        self.auth = Autorizacion()
         self.build_ui()
 
     def build_ui(self) -> None:
@@ -310,6 +311,7 @@ class LoginView(View):
         username_input = DinoInput(background, border_color="#5EB66D", text_color="#D9A51D")
         username_input.setObjectName("dinoInputOverlay")
         username_input.setPlaceholderText("Enter your username")
+        username_input.focusInEvent = lambda event: self.__clear_error_message()
 
         password_input = DinoInput(background, border_color="#4D9BDF", text_color="#58B66D")
         password_input.setObjectName("dinoInputOverlay")
@@ -330,7 +332,7 @@ class LoginView(View):
         self.agregar_widget("password_input", password_input)
         self.agregar_widget("login_button", login_button)
         self.agregar_widget("error_label", error_label)
-
+    
     def __build_image(
         self,
         background: QFrame,
@@ -439,11 +441,8 @@ class LoginView(View):
 
         for key in ("username_input", "password_input", "login_button", "error_label"):
             self.widgets[key].raise_()
-
+        
     def _validate_login(self) -> None:
-        expected_user = "admin"
-        expected_password = "admin123"
-
         username_input = self.widgets["username_input"]
         password_input = self.widgets["password_input"]
         error_label = self.widgets["error_label"]
@@ -451,13 +450,15 @@ class LoginView(View):
         username = username_input.text().strip()
         password = password_input.text()
 
-        if username == expected_user and password == expected_password:
+        usuario = self.auth.login(username=username, password=password)
+
+        if usuario:
             error_label.setText("")
             error_label.hide()
             self.main_window.route("chat")
             return
 
-        error_label.setText("Invalid username or password")
+        error_label.setText("Usuario o contraseña incorrectos")
         error_label.show()
         password_input.clear()
         password_input.setFocus()
@@ -492,3 +493,7 @@ class LoginView(View):
             }
             """
         )
+
+    def __clear_error_message(self) -> None:
+        error_label = self.widgets["error_label"]
+        error_label.setText("")
