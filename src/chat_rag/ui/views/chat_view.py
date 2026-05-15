@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 from PySide6.QtCore import QRectF, QSize, Qt
 from PySide6.QtGui import (
@@ -41,7 +42,7 @@ RED_GHOST_IMAGE = "fantasma_rojo_pixel_transparente.png"
 class GradientTitleLabel(QLabel):
     """Large rounded title painted with a playful multi-color gradient."""
 
-    def __init__(self, text: str, parent: QWidget | None = None):
+    def __init__(self, text: str, parent: Optional[QWidget] = None):
         super().__init__(text, parent)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
@@ -101,7 +102,7 @@ class ConfettiLayer(QFrame):
         (1125, 528, 22, "#FF8A00"),
     )
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -121,7 +122,7 @@ class ConfettiLayer(QFrame):
 class DecorativePanelFrame(QFrame):
     """Rounded purple frame around the fixed chat canvas."""
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
@@ -159,7 +160,7 @@ class MessageBubble(QFrame):
         },
     }
 
-    def __init__(self, message: str, sender: str = "bot", parent: QWidget | None = None):
+    def __init__(self, message: str, sender: str = "bot", parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.__message = message
         self.__sender = sender
@@ -259,7 +260,7 @@ class MessageBubble(QFrame):
         painter.drawText(text_rect, Qt.AlignCenter, wrapped_message)
         painter.restore()
 
-    def __message_font(self, point_size: int | None = None) -> QFont:
+    def __message_font(self, point_size: Optional[int] = None) -> QFont:
         font = QFont("Segoe UI", point_size or self.__max_font_size)
         font.setWeight(QFont.Weight.DemiBold)
         return font
@@ -424,7 +425,7 @@ class MessageBubble(QFrame):
 class CloudMessageInput(QFrame):
     """Rounded message input painted with QPainter."""
 
-    def __init__(self, parent: QWidget | None = None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.__border_color = QColor("#D66EF2")
         self.__accent_color = QColor("#D66EF2")
