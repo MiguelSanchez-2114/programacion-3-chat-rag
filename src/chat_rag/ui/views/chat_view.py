@@ -165,11 +165,11 @@ class MessageBubble(QFrame):
         },
     }
 
-    def __init__(self, message: str, sender: str = "bot", date: str = None, parent: Optional[QWidget] = None):
+    def __init__(self, message: str, sender: str = "bot", date: Optional[str] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.__message = message
         self.__sender = sender
-        self.__date = date
+        self.__date = date or "Ahora"
         self.__max_text_width = 480
         self.__min_bubble_width = 560
         self.__max_bubble_width = 650
@@ -759,9 +759,9 @@ class ChatView(View):
         self.widgets["upload_button"].raise_()
         self.widgets["export_button"].raise_()
 
-    def __add_message_bubble(self, message: str, sender: str, date: str = None) -> MessageBubble:
+    def __add_message_bubble(self, message: str, sender: str, date: Optional[str] = None) -> MessageBubble:
         layout = self.widgets["messages_layout"]
-        bubble = MessageBubble(message=message, sender=sender, date=date or "Ahora")
+        bubble = MessageBubble(message=message, sender=sender, date=date)
 
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
@@ -801,7 +801,7 @@ class ChatView(View):
         self.__add_message_bubble(respuesta, "bot")
 
     def __upload_file(self) -> None:
-        filters = f"Archivos permitidos (*{' *'.join(ManejadorArchivo.tipo_archivo_permitido)})"
+        filters = f"Archivos permitidos ({" ".join(f"*{ext}" for ext in ManejadorArchivo.tipo_archivo_permitido)})"
         file_path, _ = QFileDialog.getOpenFileName(
             self.main_window,
             "Seleccionar archivo",
@@ -1011,9 +1011,12 @@ class ChatView(View):
     # Método para invocar cuando se muestra la vista
     def on_show(self) -> None:
         super().on_show()
-        # Obtenemos los mensajes previos
-        mensajes_previos = self.chat.obtener_ultimos_mensajes()
-        for mensaje in mensajes_previos:
-            self.__add_message_bubble(message=mensaje.contenido, sender=mensaje.emisor, date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S"))
+        try:
+            # Obtenemos los mensajes previos
+            mensajes_previos = self.chat.obtener_ultimos_mensajes()
+            for mensaje in mensajes_previos:
+                self.__add_message_bubble(message=mensaje.contenido, sender=mensaje.emisor, date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S"))
 
-        self.__scroll_to_bottom()
+            self.__scroll_to_bottom()
+        except Exception as e:
+            print(f"Error al cargar mensajes previos: {str(e)}")
