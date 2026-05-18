@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from pypdf import PdfReader
 
 from chat_rag.config import config
 from chat_rag.controllers.archivo import Archivo
@@ -52,3 +53,38 @@ class ManejadorArchivo:
             ruta_archivo_destino = generar_nombre_unico(ruta_archivo_destino)
         shutil.copy(archivo.resolve(), ruta_archivo_destino.resolve())
         return ruta_archivo_destino.name
+    
+    @staticmethod
+    def obtener_contenido_archivo(ruta_archivo: str) -> str:
+        ruta = Path(f"{ManejadorArchivo.ruta_base}/{ruta_archivo}")
+        if not ruta.exists():
+            raise FileNotFoundError("El archivo no existe")
+        if not ruta.is_file():
+            raise ValueError("La ruta especificada no es un archivo")
+        return ManejadorArchivo.leer_archivo(ruta)
+    
+    @staticmethod
+    def leer_archivo(archivo: Path) -> str:
+        if archivo.suffix.lower() == ".pdf":
+            return ManejadorArchivo.leer_archivo_pdf(archivo)
+        elif archivo.suffix.lower() == ".txt":
+            return ManejadorArchivo.leer_archivo_txt(archivo)
+        else:
+            raise ValueError("El tipo de archivo no está soportado")
+        
+    @staticmethod
+    def leer_archivo_pdf(archivo: Path) -> str:
+        try:
+            reader = PdfReader(archivo)
+            contenido = ""
+            for page in reader.pages:
+                contenido += page.extract_text() + "\n"
+            return contenido.strip()
+        except Exception as e:
+            raise ValueError(f"Error al leer el archivo PDF: {e}")
+    
+    @staticmethod
+    def leer_archivo_txt(archivo: Path) -> str:
+        with open(archivo, 'r', encoding='utf-8') as f:
+            contenido = f.read()
+        return contenido.strip()
