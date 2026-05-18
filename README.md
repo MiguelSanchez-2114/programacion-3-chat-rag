@@ -75,24 +75,35 @@ src/
 └── chat_rag/
 	├── __init__.py
 	├── config.py
-	├── models.py
+	├── assets/
+	│   └── elementos gráficos...
+	├── controllers/
+	│   ├── __init__.py
+	│   ├── archivo.py
+	│   ├── autorizacion.py
+	│   ├── chat.py
+	│   ├── conversacion.py
+	│   ├── manejador_archivo.py
+	│   ├── modelo_ia.py
+	│   └── usuario.py
 	├── db/
 	│   ├── __init__.py
 	│   ├── connection.py
-	│   └── repository.py
-	├── services/
-	│   ├── __init__.py
-	│   ├── chat_service.py
-	│   ├── export_service.py
-	│   └── file_service.py
+	│   └── models/
+	│       ├── archivo_model.py
+	│       ├── conversacion_model.py
+	│       ├── mensaje_model.py
+	│       ├── model_base.py
+	│       └── usuario_model.py
 	├── ui/
 	│   ├── __init__.py
-	│   ├── login_dialog.py
-	│   └── main_window.py
-	└── utils/
-		├── __init__.py
-		├── json_utils.py
-		└── xml_utils.py
+	│   ├── main_window.py
+	│   └── views/
+	│       ├── __init__.py
+	│       ├── chat_view.py
+	│       └── login_view.py
+	└── tests/
+		└── test_autorizacion.py
 ```
 
 ## Requisitos
