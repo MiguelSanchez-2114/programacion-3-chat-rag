@@ -65,7 +65,7 @@ class UsuarioModel(ModelBase):
 
     @staticmethod
     def obtener_por_username(username: str) -> Optional['UsuarioModel']:
-        conexion = ModelBase._ModelBase__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         schema = BaseDeDatos.instancia().schema
         
         try:

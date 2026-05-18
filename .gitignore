@@ -23,3 +23,6 @@ env/
 # JetBrains IDEs
 .idea/
 *.iml
+
+# Rutas de archivos
+src/chat_rag/uploaded_files/

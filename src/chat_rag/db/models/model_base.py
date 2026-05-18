@@ -43,7 +43,7 @@ class ModelBase():
         return BaseDeDatos.instancia().db_name
     
     @staticmethod
-    def __obtener_conexion():
+    def obtener_conexion():
         conexion = BaseDeDatos.instancia().conectar()
         if conexion is None:
             print("No se pudo establecer conexión a la base de datos.")
@@ -52,7 +52,7 @@ class ModelBase():
     
     @staticmethod
     def obtener_todos(table_name: str) -> list[dict[str, object]]:
-        conexion = ModelBase.__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         schema = BaseDeDatos.instancia().schema
         try:
             sql = f"SELECT * FROM {schema}.{table_name}"
@@ -73,7 +73,7 @@ class ModelBase():
             print("El registro ya tiene un ID, no se puede guardar como nuevo.")
             return self.actualizar()
         
-        conexion = ModelBase.__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         try:
             datos = self.__datos_para_guardar(omitir_nulos=True)
             columnas = ", ".join(datos.keys())
@@ -104,7 +104,7 @@ class ModelBase():
             raise
     
     def actualizar(self):
-        conexion = ModelBase.__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         try:
             id = self.model.get("id")
             if id is None:
@@ -134,7 +134,7 @@ class ModelBase():
             return False
 
     def eliminar(self):
-        conexion = ModelBase.__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         try:
             id_registro = self.model.get("id")
             if id_registro is None:
@@ -153,7 +153,7 @@ class ModelBase():
             return False
 
     def obtener_por_id(self, id: int):
-        conexion = ModelBase.__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         try:
             sql = f"SELECT * FROM {self.schema}.{self.table_name} WHERE id = %s"
             cursor = conexion.cursor()
