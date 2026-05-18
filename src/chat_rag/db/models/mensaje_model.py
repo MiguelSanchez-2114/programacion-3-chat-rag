@@ -25,7 +25,7 @@ class MensajeModel(ModelBase):
     
     @staticmethod
     def obtener_ultimos_mensajes(usuario_id: int, cantidad: int = 15) -> list["MensajeModel"]:
-        conexion = ModelBase._ModelBase__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         schema = BaseDeDatos.instancia().schema
         
         try:
