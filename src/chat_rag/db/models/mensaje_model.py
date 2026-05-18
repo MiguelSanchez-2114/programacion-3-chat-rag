@@ -25,7 +25,7 @@ class MensajeModel(ModelBase):
     
     @staticmethod
     def obtener_ultimos_mensajes(usuario_id: int, cantidad: int = 15) -> list["MensajeModel"]:
-        conexion = ModelBase._ModelBase__obtener_conexion()
+        conexion = ModelBase.obtener_conexion()
         schema = BaseDeDatos.instancia().schema
         
         try:
@@ -44,6 +44,7 @@ class MensajeModel(ModelBase):
             columnas = [desc[0] for desc in cursor.description]
             for rec in record:
                 mensajes.append(MensajeModel(dict(zip(columnas, rec))))
+            mensajes.reverse()  # Invertimos para mostrar del más antiguo al más reciente
             return mensajes
         except Exception as e:
             print(f"Error al obtener los últimos mensajes: {e}")

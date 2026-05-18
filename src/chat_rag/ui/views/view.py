@@ -10,6 +10,10 @@ class ViewAbstract(ABC):
     @abstractmethod
     def build_ui(self):
         pass
+
+    @abstractmethod
+    def on_show(self):
+        pass
     
 class View(ViewAbstract):
     __main_window: QMainWindow

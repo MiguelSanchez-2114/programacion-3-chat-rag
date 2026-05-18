@@ -25,6 +25,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from chat_rag.controllers.autorizacion import Autorizacion
+from chat_rag.controllers.manejador_archivo import ManejadorArchivo
+from chat_rag.controllers.archivo import Archivo
+from chat_rag.controllers.chat import Chat
+from chat_rag.controllers.modelo_ia import ModeloIA
 from chat_rag.ui.views.view import View
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
@@ -151,7 +156,7 @@ class MessageBubble(QFrame):
             "fill": "#B5F1BE",
             "tail_side": "left",
         },
-        "user": {
+        "usuario": {
             "outline": "#FFC0D8",
             "hatch": "#FFC0D8",
             "text": "#5C4A57",
@@ -160,10 +165,11 @@ class MessageBubble(QFrame):
         },
     }
 
-    def __init__(self, message: str, sender: str = "bot", parent: Optional[QWidget] = None):
+    def __init__(self, message: str, sender: str = "bot", date: Optional[str] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.__message = message
         self.__sender = sender
+        self.__date = date or "Ahora"
         self.__max_text_width = 480
         self.__min_bubble_width = 560
         self.__max_bubble_width = 650
@@ -197,6 +203,9 @@ class MessageBubble(QFrame):
 
     def sender(self) -> str:
         return self.__sender
+
+    def date(self) -> str:
+        return self.__date
 
     def sizeHint(self) -> QSize:
         return QSize(self.width(), self.height())
@@ -257,8 +266,10 @@ class MessageBubble(QFrame):
         painter.save()
         painter.setPen(QColor(config["text"]))
         painter.setFont(font)
-        painter.drawText(text_rect, Qt.AlignCenter, wrapped_message)
+        painter.drawText(text_rect, Qt.AlignLeft | Qt.AlignTop, wrapped_message)
         painter.restore()
+
+        self.__draw_message_date(painter)
 
     def __message_font(self, point_size: Optional[int] = None) -> QFont:
         font = QFont("Segoe UI", point_size or self.__max_font_size)
@@ -273,14 +284,14 @@ class MessageBubble(QFrame):
                 "left": 30,
                 "top": 25,
                 "right": 30,
-                "bottom": 25,
+                "bottom": 42,
             }
 
         return {
             "left": 30,
             "top": 25,
             "right": 30,
-            "bottom": 25,
+            "bottom": 42,
         }
 
     def __text_rect(self) -> QRectF:
@@ -315,6 +326,31 @@ class MessageBubble(QFrame):
         font = self.__message_font(self.__min_font_size)
         metrics = QFontMetrics(font)
         return font, text_rect, self.__wrap_text_for_width(metrics, int(text_rect.width()))
+
+    def __draw_message_date(self, painter: QPainter) -> None:
+        if not self.__date:
+            return
+
+        config = self.__visual_config()
+        date_font = QFont("Segoe UI", 8)
+        date_font.setWeight(QFont.Weight.Medium)
+        metrics = QFontMetrics(date_font)
+        date_rect = self.__date_rect(metrics.horizontalAdvance(self.__date), metrics.height())
+
+        painter.save()
+        painter.setPen(QColor(config["text"]))
+        painter.setFont(date_font)
+        painter.drawText(date_rect, Qt.AlignRight | Qt.AlignVCenter, self.__date)
+        painter.restore()
+
+    def __date_rect(self, date_width: int, date_height: int) -> QRectF:
+        padding = self.__text_padding()
+        right = self.width() - padding["right"]
+        bottom = self.height() - 14
+        left = max(padding["left"], right - max(90, date_width))
+        top = max(padding["top"], bottom - max(date_height, 14))
+
+        return QRectF(left, top, right - left, bottom - top)
 
     def __wrap_text_for_width(self, metrics: QFontMetrics, max_width: int) -> str:
         paragraphs = self.__message.splitlines() or [self.__message]
@@ -550,6 +586,9 @@ class CloudMessageInput(QFrame):
 class ChatView(View):
     def __init__(self, window: QMainWindow):
         super().__init__(window, key="chat", title="Chat")
+        self.auth = Autorizacion()
+        self.chat = Chat()
+        self.modelo_ia = ModeloIA()
         self.main_window.resize(CHAT_CANVAS_WIDTH + 180, CHAT_CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
         self.build_ui()
@@ -598,8 +637,6 @@ class ChatView(View):
         self.__position_header()
         self.__position_decorations()
         self.__position_functional_elements()
-        self.__add_message_bubble("Hola, soy Dino. Esta es una burbuja creada con QPainter.", "bot")
-        self.__add_message_bubble("Perfecto, quiero una vista de chat con estilo dibujado a mano.", "user")
 
     def __build_decorations(self, background: QFrame) -> None:
         confetti_layer = ConfettiLayer(background)
@@ -722,9 +759,9 @@ class ChatView(View):
         self.widgets["upload_button"].raise_()
         self.widgets["export_button"].raise_()
 
-    def __add_message_bubble(self, message: str, sender: str) -> MessageBubble:
+    def __add_message_bubble(self, message: str, sender: str, date: Optional[str] = None) -> MessageBubble:
         layout = self.widgets["messages_layout"]
-        bubble = MessageBubble(message=message, sender=sender)
+        bubble = MessageBubble(message=message, sender=sender, date=date)
 
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
@@ -736,7 +773,7 @@ class ChatView(View):
         icon_file = BLUE_GHOST_IMAGE if sender == "bot" else DINO_PURPLE_IMAGE
         icon.setPixmap(QPixmap(str(ASSETS_DIR / icon_file)))
 
-        if sender == "user":
+        if sender == "usuario":
             row.addStretch(1)
             row.addWidget(bubble)
             row.addWidget(icon)
@@ -756,23 +793,41 @@ class ChatView(View):
         if not message:
             return
 
-        self.__add_message_bubble(message, "user")
+        self.chat.conversacion.agregar_mensaje(message, "usuario")
+        self.__add_message_bubble(message, "usuario")
+        respuesta = self.modelo_ia.procesar_pregunta(message, self.chat.conversacion)
+        self.chat.conversacion.agregar_mensaje(respuesta, "bot")
         message_input.clear()
-        self.__add_message_bubble("Estoy simulando una respuesta con base en el archivo cargado.", "bot")
+        self.__add_message_bubble(respuesta, "bot")
 
     def __upload_file(self) -> None:
+        filters = f"Archivos permitidos ({" ".join(f"*{ext}" for ext in ManejadorArchivo.tipo_archivo_permitido)})"
         file_path, _ = QFileDialog.getOpenFileName(
             self.main_window,
             "Seleccionar archivo",
             "",
-            "Archivos permitidos (*.txt *.pdf *.json *.xml);;Todos los archivos (*)",
+            filters,
         )
 
         if not file_path:
             return
+        
+        self.__add_file_to_conversation(file_path)
+    
+    def __add_file_to_conversation(self, file_path: str) -> None:
+        # TODO: Crear método para solicitar confirmación del usuario si desea reemplazar el archivo
+        try:
+            usuario = self.auth.usuario_actual
+            if not usuario:
+                raise Exception("No se ha autenticado ningún usuario. Por favor, inicie sesión para cargar archivos.")
+            archivo: Archivo = ManejadorArchivo.obtener_informacion_archivo(file_path, id_user=usuario.id)
+            self.chat.conversacion.agregar_archivo(archivo)
 
-        self.main_window.loaded_file_name = Path(file_path).name
-        self.__add_message_bubble(f"Archivo cargado: {Path(file_path).name}", "bot")
+            self.main_window.loaded_file_name = archivo.nombre
+            self.__add_message_bubble(f"Archivo cargado: {archivo.nombre}", "bot")
+        except Exception as e:
+            print(f"Error al cargar el archivo: {str(e)}")
+            self.__add_message_bubble(f"Error al cargar el archivo: {str(e)}", "bot")
 
     def __export_conversation(self) -> None:
         self.__add_message_bubble("Exportacion de conversacion preparada.", "bot")
@@ -809,8 +864,9 @@ class ChatView(View):
             }
 
             QScrollArea#conversationArea {
-                background-color: transparent;
-                border: none;
+                background-color: rgba(255, 255, 255, 0.4);
+                border: 1px solid rgba(126, 77, 255, 0.8);
+                border-radius: 18px;
             }
 
             QScrollArea#conversationArea QScrollBar:vertical {
@@ -951,3 +1007,16 @@ class ChatView(View):
 
             """
         )
+
+    # Método para invocar cuando se muestra la vista
+    def on_show(self) -> None:
+        super().on_show()
+        try:
+            # Obtenemos los mensajes previos
+            mensajes_previos = self.chat.obtener_ultimos_mensajes()
+            for mensaje in mensajes_previos:
+                self.__add_message_bubble(message=mensaje.contenido, sender=mensaje.emisor, date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S"))
+
+            self.__scroll_to_bottom()
+        except Exception as e:
+            print(f"Error al cargar mensajes previos: {str(e)}")

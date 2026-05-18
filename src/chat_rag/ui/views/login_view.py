@@ -497,3 +497,6 @@ class LoginView(View):
     def __clear_error_message(self) -> None:
         error_label = self.widgets["error_label"]
         error_label.setText("")
+
+    def on_show(self):
+        return super().on_show()

@@ -106,6 +106,7 @@ class MainWindow(QMainWindow):
     def __switch_view(self, key: str) -> None:
         if self.__exist_view(key):
             self.__current_view = self.__views[key]
+            self.__current_view.on_show()
             self.__update_view()
 
     def __exist_view(self, key: str) -> bool:

@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Configuraciones:
+    __env = os.getenv("ENV", "dev")
+
     __db = {
         "host": os.getenv("DB_HOST", "localhost"),
         "port": int(os.getenv("DB_PORT", "5432")),
@@ -22,6 +24,13 @@ class Configuraciones:
         "password": os.getenv("TEST_USER_PASSWORD", "clave123")
     }
 
+    __file_types_allowed = [t.strip() for t in os.getenv("FILE_TYPES_ALLOWED", ".txt,.pdf").split(",")]
+    __file_storage_path = os.path.dirname(os.path.abspath(__file__)) + "/" + os.getenv("FILE_STORAGE_PATH", "uploaded_files/[id_user]/")
+
+    @property
+    def env(self) -> str:
+        return self.__env
+
     @property
     def db(self) -> dict:
         return self.__db
@@ -33,5 +42,13 @@ class Configuraciones:
     @property
     def user_test(self) -> dict:
         return self.__user_test
+
+    @property
+    def file_types_allowed(self) -> list:
+        return self.__file_types_allowed
+
+    @property
+    def file_storage_path(self) -> str:
+        return self.__file_storage_path
 
 config = Configuraciones()
