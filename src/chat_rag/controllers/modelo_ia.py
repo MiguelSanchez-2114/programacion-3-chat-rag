@@ -62,6 +62,4 @@ class ModeloIA:
         return random.choice(respuestas)
         
     def __generar_respuesta(self, pregunta: str, contenido_archivo: str) -> str:
-        print(f"Pregunta: {pregunta}")
-        print(f"Contenido del archivo: {contenido_archivo}")
         return self.__generar_respuesta_aleatoria(pregunta, contenido_archivo)

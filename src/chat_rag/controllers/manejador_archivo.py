@@ -55,8 +55,19 @@ class ManejadorArchivo:
         return ruta_archivo_destino.name
     
     @staticmethod
+    def resolver_ruta_en_base(ruta_archivo: str) -> Path:
+        ruta_base = Path(ManejadorArchivo.ruta_base).resolve()
+        ruta_resuelta = (ruta_base / ruta_archivo).resolve()
+        try:
+            ruta_resuelta.relative_to(ruta_base)
+        except ValueError:
+            raise ValueError("La ruta especificada está fuera del directorio permitido")
+        return ruta_resuelta
+    
+    
+    @staticmethod
     def obtener_contenido_archivo(ruta_archivo: str) -> str:
-        ruta = Path(f"{ManejadorArchivo.ruta_base}/{ruta_archivo}")
+        ruta = ManejadorArchivo.resolver_ruta_en_base(ruta_archivo)
         if not ruta.exists():
             raise FileNotFoundError("El archivo no existe")
         if not ruta.is_file():
@@ -78,7 +89,7 @@ class ManejadorArchivo:
             reader = PdfReader(archivo)
             contenido = ""
             for page in reader.pages:
-                contenido += page.extract_text() + "\n"
+                contenido += (page.extract_text() or "") + "\n"
             return contenido.strip()
         except Exception as e:
             raise ValueError(f"Error al leer el archivo PDF: {e}")
