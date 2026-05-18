@@ -1,3 +1,5 @@
+from typing import Optional
+
 from chat_rag.db.connection import BaseDeDatos
 from chat_rag.db.models.model_base import ModelBase
 
@@ -24,7 +26,7 @@ class ArchivoModel(ModelBase):
         return [ArchivoModel(model=archivo) for archivo in archivos]
     
     @staticmethod
-    def obtener_por_id_conversacion(id_conversacion: int) -> "ArchivoModel":
+    def obtener_por_id_conversacion(id_conversacion: int) -> Optional["ArchivoModel"]:
         conexion = ModelBase.obtener_conexion()
         schema = BaseDeDatos.instancia().schema
         try:
@@ -40,7 +42,7 @@ class ArchivoModel(ModelBase):
             columnas = [desc[0] for desc in cursor.description]
             if record:
                 archivo = ArchivoModel(dict(zip(columnas, record)))
-            return archivo if archivo else None
+            return archivo
         except Exception as e:
             print(f"Error al obtener el archivo: {e}")
             return None

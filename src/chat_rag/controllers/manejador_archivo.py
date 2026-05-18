@@ -36,7 +36,7 @@ class ManejadorArchivo:
     
     @staticmethod
     def almacenar_archivo(archivo: Path, id_user: str) -> str:
-        ruta = f"{ManejadorArchivo.ruta_base.replace('[id_user]', id_user)}"
+        ruta = f"{ManejadorArchivo.ruta_base}/{id_user}"
         ruta_archivo_destino = Path(ruta)
         ruta_archivo_destino.mkdir(parents=True, exist_ok=True)
         ruta_archivo_destino = Path(f"{ruta_archivo_destino}/{archivo.name}")
