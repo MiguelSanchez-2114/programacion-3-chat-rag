@@ -29,6 +29,7 @@ from chat_rag.controllers.autorizacion import Autorizacion
 from chat_rag.controllers.manejador_archivo import ManejadorArchivo
 from chat_rag.controllers.archivo import Archivo
 from chat_rag.controllers.chat import Chat
+from chat_rag.controllers.modelo_ia import ModeloIA
 from chat_rag.ui.views.view import View
 
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
@@ -587,6 +588,7 @@ class ChatView(View):
         super().__init__(window, key="chat", title="Chat")
         self.auth = Autorizacion()
         self.chat = Chat()
+        self.modelo_ia = ModeloIA()
         self.main_window.resize(CHAT_CANVAS_WIDTH + 180, CHAT_CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
         self.build_ui()
@@ -791,9 +793,12 @@ class ChatView(View):
         if not message:
             return
 
+        self.chat.conversacion.agregar_mensaje(message, "usuario")
         self.__add_message_bubble(message, "usuario")
+        respuesta = self.modelo_ia.procesar_pregunta(message, self.chat.conversacion)
+        self.chat.conversacion.agregar_mensaje(respuesta, "bot")
         message_input.clear()
-        self.__add_message_bubble("Estoy simulando una respuesta con base en el archivo cargado.", "bot")
+        self.__add_message_bubble(respuesta, "bot")
 
     def __upload_file(self) -> None:
         filters = f"Archivos permitidos (*{' *'.join(ManejadorArchivo.tipo_archivo_permitido)})"
@@ -806,11 +811,17 @@ class ChatView(View):
 
         if not file_path:
             return
+        
+        self.__add_file_to_conversation(file_path)
+    
+    def __add_file_to_conversation(self, file_path: str) -> None:
+        # TODO: Crear método para solicitar confirmación del usuario si desea reemplazar el archivo
         try:
             usuario = self.auth.usuario_actual
             if not usuario:
                 raise Exception("No se ha autenticado ningún usuario. Por favor, inicie sesión para cargar archivos.")
             archivo: Archivo = ManejadorArchivo.obtener_informacion_archivo(file_path, id_user=usuario.id)
+            self.chat.conversacion.agregar_archivo(archivo)
 
             self.main_window.loaded_file_name = archivo.nombre
             self.__add_message_bubble(f"Archivo cargado: {archivo.nombre}", "bot")
@@ -853,8 +864,9 @@ class ChatView(View):
             }
 
             QScrollArea#conversationArea {
-                background-color: transparent;
-                border: none;
+                background-color: rgba(255, 255, 255, 0.4);
+                border: 1px solid rgba(126, 77, 255, 0.8);
+                border-radius: 18px;
             }
 
             QScrollArea#conversationArea QScrollBar:vertical {
@@ -1003,3 +1015,5 @@ class ChatView(View):
         mensajes_previos = self.chat.obtener_ultimos_mensajes()
         for mensaje in mensajes_previos:
             self.__add_message_bubble(message=mensaje.contenido, sender=mensaje.emisor, date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S"))
+
+        self.__scroll_to_bottom()
