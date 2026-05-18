@@ -1,3 +1,4 @@
+from chat_rag.db.connection import BaseDeDatos
 from chat_rag.db.models.model_base import ModelBase
 
 class ArchivoModel(ModelBase):
@@ -21,6 +22,28 @@ class ArchivoModel(ModelBase):
     def obtener_todos() -> list["ArchivoModel"]:
         archivos = ModelBase.obtener_todos(ArchivoModel.__table_name)
         return [ArchivoModel(model=archivo) for archivo in archivos]
+    
+    @staticmethod
+    def obtener_por_id_conversacion(id_conversacion: int) -> "ArchivoModel":
+        conexion = ModelBase.obtener_conexion()
+        schema = BaseDeDatos.instancia().schema
+        try:
+            sql = f"""
+                SELECT a.id, a.nombre, a.tipo, a.tamano, a.id_conversacion
+                FROM {schema}.archivo a
+                WHERE a.id_conversacion = %s
+            """
+            cursor = conexion.cursor()
+            cursor.execute(sql, (id_conversacion,))
+            record = cursor.fetchone()
+            archivo = None
+            columnas = [desc[0] for desc in cursor.description]
+            if record:
+                archivo = ArchivoModel(dict(zip(columnas, record)))
+            return archivo if archivo else None
+        except Exception as e:
+            print(f"Error al obtener el archivo: {e}")
+            return None
 
     @property
     def id(self) -> int:
