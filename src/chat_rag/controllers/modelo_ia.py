@@ -66,13 +66,17 @@ class ModeloIA:
     def __generar_respuesta(self, pregunta: str, contenido_archivo: str) -> str:
         try:
             respuesta = self.__generar_respuesta_gemini(pregunta, contenido_archivo)
-        except Exception:
+        except Exception as e:
+            print("Error al generar respuesta con Gemini", e)
             respuesta = self.__generar_respuesta_aleatoria(pregunta, contenido_archivo)
         return respuesta
 
     def __generar_respuesta_gemini(self, pregunta: str, contenido_archivo: str) -> str:
         # TIP: Asegúrate de que esta llave sea la que copiaste de AI Studio
         LLAVE_API = config.gemini_api_key
+        
+        if not isinstance(LLAVE_API, str) or not LLAVE_API.strip():
+            raise ValueError("La configuración 'gemini_api_key' no está definida o está vacía.")
 
         client = genai.Client(api_key=LLAVE_API)
 
@@ -91,12 +95,11 @@ class ModeloIA:
             codigo = e.code
 
             if codigo == 429:
-                print("Error 429: Límite de cuota alcanzado. Esperando 60 segundos...")
+                raise ValueError("Error 429: Límite de cuota alcanzado. Esperando 60 segundos...")
                 # time.sleep(60)
             elif codigo == 400:
-                print("Error 400: La API Key no es válida. Revisa que esté bien copiada en AI Studio.")
+                raise ValueError("Error 400: La API Key no es válida. Revisa que esté bien copiada en AI Studio.")
             else:
-                print(f"Error detectado (Código {codigo}): {e}")
-            raise e  # Re-lanzamos la excepción para que el método padre pueda manejarla
+                raise ValueError(f"Error detectado (Código {codigo}): {e}")
         except Exception as e:
-            print(f"Ocurrió un error inesperado: {e}")
+            raise ValueError(f"Ocurrió un error inesperado: {e}")
