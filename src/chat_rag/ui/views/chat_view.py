@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QRectF, QSize, Qt
+from PySide6.QtCore import QObject, QRectF, QSize, Qt, QThread, Signal, Slot
 from PySide6.QtGui import (
     QColor,
     QFont,
@@ -583,12 +583,64 @@ class CloudMessageInput(QFrame):
         )
 
 
+class ResponseWorker(QObject):
+    response_ready = Signal(str)
+    error = Signal(str)
+    finished = Signal()
+
+    def __init__(self, modelo_ia: ModeloIA, pregunta: str, conversacion):
+        super().__init__()
+        self.__modelo_ia = modelo_ia
+        self.__pregunta = pregunta
+        self.__conversacion = conversacion
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            respuesta = self.__modelo_ia.procesar_pregunta(self.__pregunta, self.__conversacion)
+            self.response_ready.emit(respuesta)
+        except Exception as e:
+            self.error.emit(str(e))
+        finally:
+            self.finished.emit()
+
+
+class ResponseDispatcher(QObject):
+    def __init__(self, view: "ChatView", parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.__view = view
+
+    @Slot(str)
+    def handle_response_ready(self, respuesta: str) -> None:
+        try:
+            self.__view._handle_response_ready_ui(respuesta)
+        except Exception as e:
+            print(f"Error al mostrar la respuesta: {e}")
+
+    @Slot(str)
+    def handle_response_error(self, error_message: str) -> None:
+        try:
+            self.__view._handle_response_error_ui(error_message)
+        except Exception as e:
+            print(f"Error al mostrar el error de respuesta: {e}")
+
+    @Slot()
+    def handle_finished(self) -> None:
+        try:
+            self.__view._cleanup_response_worker_ui()
+        except Exception as e:
+            print(f"Error al limpiar el worker de respuesta: {e}")
+
+
 class ChatView(View):
     def __init__(self, window: QMainWindow):
         super().__init__(window, key="chat", title="Chat")
         self.auth = Autorizacion()
         self.chat = Chat()
         self.modelo_ia = ModeloIA()
+        self.__response_thread: Optional[QThread] = None
+        self.__response_worker: Optional[ResponseWorker] = None
+        self.__response_dispatcher = ResponseDispatcher(self, self.main_window)
         self.main_window.resize(CHAT_CANVAS_WIDTH + 180, CHAT_CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
         self.build_ui()
@@ -790,18 +842,43 @@ class ChatView(View):
         message_input = self.widgets["message_input"]
         message = message_input.toPlainText().strip()
 
-        if not message:
+        if not message or self.__response_thread is not None:
             return
 
         self.chat.conversacion.agregar_mensaje(message, "usuario")
         self.__add_message_bubble(message, "usuario")
-        respuesta = self.modelo_ia.procesar_pregunta(message, self.chat.conversacion)
-        self.chat.conversacion.agregar_mensaje(respuesta, "bot")
         message_input.clear()
+        self.widgets["send_button"].setEnabled(False)
+
+        self.__response_thread = QThread(self.main_window)
+        self.__response_worker = ResponseWorker(self.modelo_ia, message, self.chat.conversacion)
+        self.__response_worker.moveToThread(self.__response_thread)
+
+        self.__response_thread.started.connect(self.__response_worker.run)
+        self.__response_worker.response_ready.connect(self.__response_dispatcher.handle_response_ready)
+        self.__response_worker.error.connect(self.__response_dispatcher.handle_response_error)
+        self.__response_worker.finished.connect(self.__response_thread.quit)
+        self.__response_worker.finished.connect(self.__response_worker.deleteLater)
+        self.__response_thread.finished.connect(self.__response_thread.deleteLater)
+        self.__response_thread.finished.connect(self.__response_dispatcher.handle_finished)
+
+        self.__response_thread.start()
+
+    def _handle_response_ready_ui(self, respuesta: str) -> None:
+        self.chat.conversacion.agregar_mensaje(respuesta, "bot")
         self.__add_message_bubble(respuesta, "bot")
 
+    def _handle_response_error_ui(self, error_message: str) -> None:
+        self.__add_message_bubble(f"Error al generar la respuesta: {error_message}", "bot")
+
+    def _cleanup_response_worker_ui(self) -> None:
+        self.__response_thread = None
+        self.__response_worker = None
+        self.widgets["send_button"].setEnabled(True)
+
     def __upload_file(self) -> None:
-        filters = f"Archivos permitidos ({" ".join(f"*{ext}" for ext in ManejadorArchivo.tipo_archivo_permitido)})"
+        filters = " ".join("*"+ext for ext in ManejadorArchivo.tipo_archivo_permitido)
+        filters = f"Archivos permitidos ({filters})"
         file_path, _ = QFileDialog.getOpenFileName(
             self.main_window,
             "Seleccionar archivo",
