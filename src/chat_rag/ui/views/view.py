@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from PySide6.QtWidgets import (
     QBoxLayout,
     QMainWindow,
+    QMessageBox,
     QWidget,
 )
 
@@ -54,3 +55,22 @@ class View(ViewAbstract):
 
     def agregar_widget(self, clave: str, widget: QWidget) -> None:
         self.__widgets[clave] = widget
+
+    def mostrar_mensaje(self, mensaje: str, titulo: str = "Chat RAG") -> None:
+        QMessageBox.information(self.main_window, titulo, mensaje)
+
+    def mostrar_error(self, mensaje: str, titulo: str = "Chat RAG") -> None:
+        QMessageBox.critical(self.main_window, titulo, mensaje)
+    
+    def mostrar_confirmacion(self, mensaje: str, titulo: str = "Chat RAG", text_yes: str = "Sí", text_no: str = "No") -> bool:
+        msg = QMessageBox(self.main_window)
+        msg.setWindowTitle(titulo)
+        msg.setText(mensaje)
+
+        # Add buttons with custom text and roles
+        accept_btn = msg.addButton(text_yes, QMessageBox.ButtonRole.AcceptRole)
+        reject_btn = msg.addButton(text_no, QMessageBox.ButtonRole.RejectRole)
+
+        msg.exec()
+
+        return msg.clickedButton() == accept_btn
