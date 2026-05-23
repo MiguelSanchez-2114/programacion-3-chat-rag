@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QWidget,
 )
+from PySide6.QtCore import QTimer
 
 class ViewAbstract(ABC):
 
@@ -74,3 +75,15 @@ class View(ViewAbstract):
         msg.exec()
 
         return msg.clickedButton() == accept_btn
+    
+    def crear_alerta(self, mensaje: str, titulo: str = "Chat RAG", require_confirmation: bool = False) -> QMessageBox:
+        # 1. Create the instance
+        msg = QMessageBox(self.main_window)
+        msg.setWindowTitle(titulo)
+        msg.setText(mensaje)
+
+        # 2. Remove all buttons
+        if not require_confirmation:
+            msg.setStandardButtons(QMessageBox.NoButton)
+
+        return msg

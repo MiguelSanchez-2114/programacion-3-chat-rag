@@ -842,8 +842,13 @@ class ChatView(View):
         message_input = self.widgets["message_input"]
         message = message_input.toPlainText().strip()
 
-        if not message or self.__response_thread is not None:
+        if self.__response_thread is not None:
+            self.mostrar_mensaje("Espera a que termine la respuesta actual antes de enviar otro mensaje.")
+            return
+        
+        if not message:
             self.mostrar_mensaje("Ingresa un mensaje antes de continuar")
+            message_input.setFocus()
             return
         
         if self.chat.conversacion.archivo is None:
@@ -859,7 +864,8 @@ class ChatView(View):
         self.__response_worker = ResponseWorker(self.modelo_ia, message, self.chat.conversacion)
         self.__response_worker.moveToThread(self.__response_thread)
 
-        self.__response_thread.started.connect(lambda: self.mostrar_mensaje("Generando respuesta..."))
+        alerta_generar_respuesta = self.crear_alerta("Generando respuesta", "Por favor, espera mientras se genera la respuesta del modelo de IA.")
+        self.__response_thread.started.connect(lambda: alerta_generar_respuesta.show())
         self.__response_thread.started.connect(self.__response_worker.run)
         self.__response_worker.response_ready.connect(self.__response_dispatcher.handle_response_ready)
         self.__response_worker.error.connect(self.__response_dispatcher.handle_response_error)
@@ -867,7 +873,7 @@ class ChatView(View):
         self.__response_worker.finished.connect(self.__response_worker.deleteLater)
         self.__response_thread.finished.connect(self.__response_thread.deleteLater)
         self.__response_thread.finished.connect(self.__response_dispatcher.handle_finished)
-        self.__response_thread.finished.connect(lambda: self.mostrar_mensaje("Respuesta generada."))
+        self.__response_thread.finished.connect(lambda: alerta_generar_respuesta.accept())
 
         self.__response_thread.start()
 
@@ -907,9 +913,9 @@ class ChatView(View):
             archivo: Archivo = ManejadorArchivo.obtener_informacion_archivo(file_path, id_user=usuario.id)
 
             if self.chat.conversacion.archivo is not None:
-                remplazar = self.mostrar_confirmacion("¿Deseas reemplazar el archivo actual o iniciar una nueva conversación?", "Reemplazar archivo", "Reemplazar", "Nueva conversación")
+                reemplazar = self.mostrar_confirmacion("¿Deseas reemplazar el archivo actual o iniciar una nueva conversación?", "Reemplazar archivo", "Reemplazar", "Nueva conversación")
 
-                if not remplazar:
+                if not reemplazar:
                     self.chat.conversacion.iniciar_conversacion()
                     self.__add_message_bubble("Iniciando nueva conversación. El archivo anterior ha sido descartado.", "bot")
 
