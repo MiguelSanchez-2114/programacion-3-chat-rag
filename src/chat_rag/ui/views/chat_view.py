@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QRectF, QSize, Qt
+from PySide6.QtCore import QObject, QRectF, QSize, Qt, QThread, Signal, Slot
 from PySide6.QtGui import (
     QColor,
     QFont,
@@ -583,12 +583,36 @@ class CloudMessageInput(QFrame):
         )
 
 
+class ResponseWorker(QObject):
+    response_ready = Signal(str)
+    error = Signal(str)
+    finished = Signal()
+
+    def __init__(self, modelo_ia: ModeloIA, pregunta: str, conversacion):
+        super().__init__()
+        self.__modelo_ia = modelo_ia
+        self.__pregunta = pregunta
+        self.__conversacion = conversacion
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            respuesta = self.__modelo_ia.procesar_pregunta(self.__pregunta, self.__conversacion)
+            self.response_ready.emit(respuesta)
+        except Exception as e:
+            self.error.emit(str(e))
+        finally:
+            self.finished.emit()
+
+
 class ChatView(View):
     def __init__(self, window: QMainWindow):
         super().__init__(window, key="chat", title="Chat")
         self.auth = Autorizacion()
         self.chat = Chat()
         self.modelo_ia = ModeloIA()
+        self.__response_thread: Optional[QThread] = None
+        self.__response_worker: Optional[ResponseWorker] = None
         self.main_window.resize(CHAT_CANVAS_WIDTH + 180, CHAT_CANVAS_HEIGHT + 160)
         self.main_window.setMinimumSize(1100, 720)
         self.build_ui()
@@ -790,15 +814,39 @@ class ChatView(View):
         message_input = self.widgets["message_input"]
         message = message_input.toPlainText().strip()
 
-        if not message:
+        if not message or self.__response_thread is not None:
             return
 
         self.chat.conversacion.agregar_mensaje(message, "usuario")
         self.__add_message_bubble(message, "usuario")
         message_input.clear()
-        respuesta = self.modelo_ia.procesar_pregunta(message, self.chat.conversacion)
+        self.widgets["send_button"].setEnabled(False)
+
+        self.__response_thread = QThread(self.main_window)
+        self.__response_worker = ResponseWorker(self.modelo_ia, message, self.chat.conversacion)
+        self.__response_worker.moveToThread(self.__response_thread)
+
+        self.__response_thread.started.connect(self.__response_worker.run)
+        self.__response_worker.response_ready.connect(self.__handle_response_ready)
+        self.__response_worker.error.connect(self.__handle_response_error)
+        self.__response_worker.finished.connect(self.__response_thread.quit)
+        self.__response_worker.finished.connect(self.__response_worker.deleteLater)
+        self.__response_thread.finished.connect(self.__response_thread.deleteLater)
+        self.__response_thread.finished.connect(self.__cleanup_response_worker)
+
+        self.__response_thread.start()
+
+    def __handle_response_ready(self, respuesta: str) -> None:
         self.chat.conversacion.agregar_mensaje(respuesta, "bot")
         self.__add_message_bubble(respuesta, "bot")
+
+    def __handle_response_error(self, error_message: str) -> None:
+        self.__add_message_bubble(f"Error al generar la respuesta: {error_message}", "bot")
+
+    def __cleanup_response_worker(self) -> None:
+        self.__response_thread = None
+        self.__response_worker = None
+        self.widgets["send_button"].setEnabled(True)
 
     def __upload_file(self) -> None:
         filters = " ".join("*"+ext for ext in ManejadorArchivo.tipo_archivo_permitido)
