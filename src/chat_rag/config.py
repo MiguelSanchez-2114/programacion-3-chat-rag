@@ -27,6 +27,8 @@ class Configuraciones:
     __file_types_allowed = [t.strip() for t in os.getenv("FILE_TYPES_ALLOWED", ".txt,.pdf").split(",")]
     __file_storage_path = os.path.dirname(os.path.abspath(__file__)) + "/" + os.getenv("FILE_STORAGE_PATH", "uploaded_files/[id_user]/")
 
+    __gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+
     @property
     def env(self) -> str:
         return self.__env
@@ -50,5 +52,9 @@ class Configuraciones:
     @property
     def file_storage_path(self) -> str:
         return self.__file_storage_path
+    
+    @property
+    def gemini_api_key(self) -> str:
+        return self.__gemini_api_key
 
 config = Configuraciones()

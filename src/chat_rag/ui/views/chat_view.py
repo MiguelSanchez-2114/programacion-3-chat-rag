@@ -795,13 +795,14 @@ class ChatView(View):
 
         self.chat.conversacion.agregar_mensaje(message, "usuario")
         self.__add_message_bubble(message, "usuario")
+        message_input.clear()
         respuesta = self.modelo_ia.procesar_pregunta(message, self.chat.conversacion)
         self.chat.conversacion.agregar_mensaje(respuesta, "bot")
-        message_input.clear()
         self.__add_message_bubble(respuesta, "bot")
 
     def __upload_file(self) -> None:
-        filters = f"Archivos permitidos ({" ".join(f"*{ext}" for ext in ManejadorArchivo.tipo_archivo_permitido)})"
+        filters = " ".join("*"+ext for ext in ManejadorArchivo.tipo_archivo_permitido)
+        filters = f"Archivos permitidos ({filters})"
         file_path, _ = QFileDialog.getOpenFileName(
             self.main_window,
             "Seleccionar archivo",

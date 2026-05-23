@@ -1,4 +1,6 @@
 from typing import Optional
+from google import genai
+from google.genai import errors
 import random
 
 from chat_rag.controllers.autorizacion import Autorizacion
@@ -62,4 +64,39 @@ class ModeloIA:
         return random.choice(respuestas)
         
     def __generar_respuesta(self, pregunta: str, contenido_archivo: str) -> str:
-        return self.__generar_respuesta_aleatoria(pregunta, contenido_archivo)
+        try:
+            respuesta = self.__generar_respuesta_gemini(pregunta, contenido_archivo)
+        except Exception:
+            respuesta = self.__generar_respuesta_aleatoria(pregunta, contenido_archivo)
+        return respuesta
+
+    def __generar_respuesta_gemini(self, pregunta: str, contenido_archivo: str) -> str:
+        # TIP: Asegúrate de que esta llave sea la que copiaste de AI Studio
+        LLAVE_API = config.gemini_api_key
+
+        client = genai.Client(api_key=LLAVE_API)
+
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                config={
+                    "system_instruction": "Responde la pregunta a partir del siguiente texto: "+contenido_archivo
+                },
+                contents=""+pregunta
+            )
+            return response.text
+
+        except errors.ClientError as e:
+            # En google-genai se usa .code para obtener el status HTTP
+            codigo = e.code
+
+            if codigo == 429:
+                print("Error 429: Límite de cuota alcanzado. Esperando 60 segundos...")
+                # time.sleep(60)
+            elif codigo == 400:
+                print("Error 400: La API Key no es válida. Revisa que esté bien copiada en AI Studio.")
+            else:
+                print(f"Error detectado (Código {codigo}): {e}")
+            raise e  # Re-lanzamos la excepción para que el método padre pueda manejarla
+        except Exception as e:
+            print(f"Ocurrió un error inesperado: {e}")
