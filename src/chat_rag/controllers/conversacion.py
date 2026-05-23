@@ -46,6 +46,8 @@ class Conversacion:
             conversacion.guardar()
             self.id = conversacion.id
             self.id_usuario = conversacion.id_usuario
+            self.__mensajes = []
+            self.__archivo = None
         except Exception as e:
             raise ValueError(f"Error al iniciar conversación: {e}")
         

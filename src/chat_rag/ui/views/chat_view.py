@@ -478,7 +478,7 @@ class CloudMessageInput(QFrame):
 
         self.__text_edit = QTextEdit(self)
         self.__text_edit.setObjectName("cloudInputText")
-        self.__text_edit.setPlaceholderText("Type your message here")
+        self.__text_edit.setPlaceholderText("Escribe tu mensaje aquí...")
         self.__text_edit.setFrameShape(QFrame.NoFrame)
         self.__text_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.__text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -744,18 +744,18 @@ class ChatView(View):
     def __build_input_area(self, background: QFrame) -> None:
         message_input = CloudMessageInput(background)
 
-        send_button = QPushButton("Send", background)
+        send_button = QPushButton("Enviar", background)
         send_button.setObjectName("sendButton")
         send_button.clicked.connect(self.__send_message)
 
         action_panel = QFrame(background)
         action_panel.setObjectName("chatActionPanel")
 
-        upload_button = QPushButton("Upload Files", action_panel)
+        upload_button = QPushButton("Subir archivo", action_panel)
         upload_button.setObjectName("uploadFilesButton")
         upload_button.clicked.connect(self.__upload_file)
 
-        export_button = QPushButton("Export conversations", action_panel)
+        export_button = QPushButton("Exportar conversaciones", action_panel)
         export_button.setObjectName("exportConversationsButton")
         export_button.clicked.connect(self.__export_conversation)
 
@@ -842,7 +842,17 @@ class ChatView(View):
         message_input = self.widgets["message_input"]
         message = message_input.toPlainText().strip()
 
-        if not message or self.__response_thread is not None:
+        if self.__response_thread is not None:
+            self.mostrar_mensaje("Espera a que termine la respuesta actual antes de enviar otro mensaje.")
+            return
+        
+        if not message:
+            self.mostrar_mensaje("Ingresa un mensaje antes de continuar")
+            message_input.setFocus()
+            return
+        
+        if self.chat.conversacion.archivo is None:
+            self.mostrar_mensaje("Por favor, sube un archivo para continuar")
             return
 
         self.chat.conversacion.agregar_mensaje(message, "usuario")
@@ -854,6 +864,8 @@ class ChatView(View):
         self.__response_worker = ResponseWorker(self.modelo_ia, message, self.chat.conversacion)
         self.__response_worker.moveToThread(self.__response_thread)
 
+        alerta_generar_respuesta = self.crear_alerta("Generando respuesta", "Por favor, espera mientras se genera la respuesta del modelo de IA.")
+        self.__response_thread.started.connect(lambda: alerta_generar_respuesta.show())
         self.__response_thread.started.connect(self.__response_worker.run)
         self.__response_worker.response_ready.connect(self.__response_dispatcher.handle_response_ready)
         self.__response_worker.error.connect(self.__response_dispatcher.handle_response_error)
@@ -861,6 +873,7 @@ class ChatView(View):
         self.__response_worker.finished.connect(self.__response_worker.deleteLater)
         self.__response_thread.finished.connect(self.__response_thread.deleteLater)
         self.__response_thread.finished.connect(self.__response_dispatcher.handle_finished)
+        self.__response_thread.finished.connect(lambda: alerta_generar_respuesta.accept())
 
         self.__response_thread.start()
 
@@ -898,6 +911,14 @@ class ChatView(View):
             if not usuario:
                 raise Exception("No se ha autenticado ningún usuario. Por favor, inicie sesión para cargar archivos.")
             archivo: Archivo = ManejadorArchivo.obtener_informacion_archivo(file_path, id_user=usuario.id)
+
+            if self.chat.conversacion.archivo is not None:
+                reemplazar = self.mostrar_confirmacion("¿Deseas reemplazar el archivo actual o iniciar una nueva conversación?", "Reemplazar archivo", "Reemplazar", "Nueva conversación")
+
+                if not reemplazar:
+                    self.chat.conversacion.iniciar_conversacion()
+                    self.__add_message_bubble("Iniciando nueva conversación. El archivo anterior ha sido descartado.", "bot")
+
             self.chat.conversacion.agregar_archivo(archivo)
 
             self.main_window.loaded_file_name = archivo.nombre

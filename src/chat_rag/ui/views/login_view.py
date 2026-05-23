@@ -310,12 +310,12 @@ class LoginView(View):
     def __build_login_controls(self, background: QFrame) -> None:
         username_input = DinoInput(background, border_color="#5EB66D", text_color="#D9A51D")
         username_input.setObjectName("dinoInputOverlay")
-        username_input.setPlaceholderText("Enter your username")
+        username_input.setPlaceholderText("Usuario")
         username_input.focusInEvent = lambda event: self.__clear_error_message()
 
         password_input = DinoInput(background, border_color="#4D9BDF", text_color="#58B66D")
         password_input.setObjectName("dinoInputOverlay")
-        password_input.setPlaceholderText("Enter your password")
+        password_input.setPlaceholderText("Contraseña")
         password_input.setEchoMode(QLineEdit.Password)
 
         login_button = DinoGradientButton("Login", background)
@@ -445,21 +445,22 @@ class LoginView(View):
     def _validate_login(self) -> None:
         username_input = self.widgets["username_input"]
         password_input = self.widgets["password_input"]
-        error_label = self.widgets["error_label"]
 
         username = username_input.text().strip()
+        if not username:
+            self.mostrar_mensaje("Por favor, ingrese un nombre de usuario", "Faltan Datos")
+            username_input.setFocus()
+            return
+
         password = password_input.text()
 
         usuario = self.auth.login(username=username, password=password)
 
         if usuario:
-            error_label.setText("")
-            error_label.hide()
             self.main_window.route("chat")
             return
-
-        error_label.setText("Usuario o contraseña incorrectos")
-        error_label.show()
+        
+        self.mostrar_error("Usuario o contraseña incorrectos", "Fallo de Autenticación")
         password_input.clear()
         password_input.setFocus()
 
