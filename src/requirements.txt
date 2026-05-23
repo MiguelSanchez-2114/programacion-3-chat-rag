@@ -1,5 +1,6 @@
-PySide6
-psycopg2[binary]
-python-dotenv
-pyinstaller
-pypdf
+PySide6>=6.10.3
+python-dotenv>=1.2.1
+pyinstaller>=6.20.0
+pypdf>=6.11.0
+psycopg2-binary>=2.9.12
+google-genai>=1.47.0
