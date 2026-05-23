@@ -11,10 +11,31 @@ class Exportador:
 
     @staticmethod
     def to_json(conversacion: Conversacion, indent: int = 2) -> str:
+
+        data = {
+            "conversacion_id": conversacion.id,
+            "mensajes": []
+        }
         
-        data = conversacion.to_dict()
-         
+        if conversacion.archivo:
+            data["archivo"] = conversacion.archivo.nombre
+        else:
+            data["archivo"] = None  
+        
+        for mensaje in conversacion.mensajes:
+            msg_data = {
+                "emisor": mensaje.emisor,
+                "texto": mensaje.contenido  
+            }
+            
+            
+            if hasattr(mensaje, 'fecha') and mensaje.fecha:
+                msg_data["fecha_hora"] = str(mensaje.fecha)
+            
+            data["mensajes"].append(msg_data)
+        
         return json.dumps(data, ensure_ascii=False, indent=indent)
+    
 
     @staticmethod
     def exportar_json(conversacion: Conversacion, filepath: str) -> None:
@@ -36,10 +57,10 @@ class Exportador:
             msg_el = ET.SubElement(mensajes_el, "mensaje")
             msg_el.set("emisor", mensaje.emisor)
 
-            contenido_el = ET.SubElement(msg_el, "contenido")
+            contenido_el = ET.SubElement(msg_el, "texto")
             contenido_el.text = mensaje.contenido
 
-            fecha_el = ET.SubElement(msg_el, "fecha")
+            fecha_el = ET.SubElement(msg_el, "fecha_hora")
             fecha_el.text = str(mensaje.fecha)
 
         raw = ET.tostring(root, encoding="unicode")
@@ -49,5 +70,7 @@ class Exportador:
     def exportar_xml(conversacion: Conversacion, filepath: str) -> None:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(Exportador.to_xml(conversacion))
+
+
 
 
