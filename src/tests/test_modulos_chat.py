@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import os
+from pathlib import Path  
 from types import SimpleNamespace
 from unittest.mock import patch, PropertyMock
 
@@ -22,7 +23,7 @@ class TestChat(unittest.TestCase):
 
     def setUp(self):
         self.user = SimpleNamespace(id=1)
-
+        
     @patch('chat_rag.controllers.autorizacion.Autorizacion.usuario_actual', new_callable=PropertyMock)
     def test_error_conexion_bd_al_cargar_mensajes(self, mock_usuario):
         """
@@ -33,41 +34,51 @@ class TestChat(unittest.TestCase):
         with patch('chat_rag.db.models.mensaje_model.MensajeModel.obtener_ultimos_mensajes', 
                    side_effect=Exception('DB down')):
             chat = Chat()
-            with self.assertRaises(Exception):
+            with self.assertRaises(Exception) as exc_info:
                 chat.obtener_ultimos_mensajes()
+            # Valida que la excepción capturada sea exactamente la simulada
+            self.assertEqual(str(exc_info.exception), 'DB down')
 
     def test_exportar_con_mensajes_sin_fecha_no_falla(self):
         """
-        Caso: Mensajes con metadatos incompletos (sin fecha).
+        Caso: Mensajes con metadatos incompletos (fecha None).
         El exportador debe manejar el caso y generar JSON válido.
         """
-        conversacion = Conversacion(id=10, id_usuario=1)
         fake_msg = SimpleNamespace(emisor='user', contenido='hola', fecha=None)
-        conversacion._Conversacion__mensajes = [fake_msg]
         
-        json_text = Exportador.to_json(conversacion)
-        self.assertIn('mensajes', json_text)
+        with patch.object(Conversacion, 'mensajes', new_callable=PropertyMock) as mock_mensajes:
+            mock_mensajes.return_value = [fake_msg]
+            conversacion = Conversacion(id=10, id_usuario=1)
+            
+            json_text = Exportador.to_json(conversacion)
+            self.assertIn('mensajes', json_text)
 
 
 class TestConversacion(unittest.TestCase):
     """
-    Pruebas para el módulo Conversacion (envío y registro de mensajes).
-    
-    Casos de uso:
-    1. Error al guardar mensaje en base de datos.
-    2. Generación de respuesta sin contexto de archivo válido.
+    Pruebas para el modulo Conversacion (envio y registro de mensajes).
     """
+
+    def setUp(self):
+        # Resetear Singleton de ModeloIA para garantizar aislamiento entre pruebas
+        ModeloIA._instancia = None
+
+    def tearDown(self):
+        # Limpiar estado compartido despues de cada prueba
+        ModeloIA._instancia = None
 
     def test_error_bd_al_guardar_mensaje(self):
         """
         Caso: Fallo de escritura en BD al agregar un mensaje.
-        El sistema debe propagar la excepción para manejo en capa superior.
+        El sistema debe propagar la excepcion para manejo en capa superior.
         """
         conv = Conversacion(id=5, id_usuario=1)
         with patch('chat_rag.db.models.mensaje_model.MensajeModel.guardar', 
                    side_effect=Exception('Write error')):
-            with self.assertRaises(Exception):
+            with self.assertRaises(Exception) as exc_info:
                 conv.agregar_mensaje('hola', 'user')
+            # Verificacion estricta del mensaje simulado
+            self.assertEqual(str(exc_info.exception), 'Write error')
 
     def test_error_generar_respuesta_sin_archivo(self):
         """
@@ -76,8 +87,10 @@ class TestConversacion(unittest.TestCase):
         """
         conversacion = Conversacion(id=2, id_usuario=1)
         modelo = ModeloIA()
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as exc_info:
             modelo.procesar_pregunta('¿Qué dice el archivo?', conversacion)
+        # Verificacion estricta del error generado
+        self.assertIn('archivo', str(exc_info.exception).lower())
 
 
 class TestManejadorArchivo(unittest.TestCase):
@@ -91,8 +104,8 @@ class TestManejadorArchivo(unittest.TestCase):
 
     def test_rechazar_formato_no_permitido(self):
         """
-        Caso: Usuario intenta cargar archivo con extensión no válida (.exe).
-        El sistema debe validar la extensión y lanzar ValueError.
+        Caso: Usuario intenta cargar archivo con extension no valida (.exe).
+        El sistema debe validar la extension y lanzar ValueError.
         """
         tmp = tempfile.NamedTemporaryFile(suffix='.exe', delete=False)
         tmp.write(b'test')
@@ -100,7 +113,7 @@ class TestManejadorArchivo(unittest.TestCase):
         tmp.close()
         try:
             with self.assertRaises(ValueError):
-                ManejadorArchivo.validar_archivo(__import__('pathlib').Path(tmp.name))
+                ManejadorArchivo.validar_archivo(Path(tmp.name))
         finally:
             os.unlink(tmp.name)
 
@@ -165,52 +178,21 @@ class TestAsociarArchivo(unittest.TestCase):
     def test_error_bd_al_registrar_asociacion_archivo(self):
         """
         Caso: Fallo en BD al guardar la relación entre archivo y conversación.
-        El sistema debe propagar la excepción para manejo en capa superior.
+        Se mockea la capa de archivos para evitar escritura en disco y dependencias de configuración.
         """
-        tmp = tempfile.NamedTemporaryFile(suffix='.txt', delete=False)
-        tmp.write(b'contenido')
-        tmp.flush()
-        tmp.close()
-        try:
-            archivo = ManejadorArchivo.obtener_informacion_archivo(tmp.name, 1)
-            conv = Conversacion(id=3, id_usuario=1)
-            with patch('chat_rag.db.models.archivo_model.ArchivoModel.guardar', 
-                       side_effect=Exception('DB error')):
+        # Simular objeto Archivo sin tocar el sistema de archivos
+        archivo_mock = SimpleNamespace(
+            id=None,
+            nombre="prueba_segura.txt",
+            ruta="/mock/ruta.txt",
+            tipo="text/plain"
+        )
+
+        with patch.object(ManejadorArchivo, 'obtener_informacion_archivo', return_value=archivo_mock):
+            with patch('chat_rag.db.models.archivo_model.ArchivoModel.guardar', side_effect=Exception('DB error')):
+                conv = Conversacion(id=3, id_usuario=1)
                 with self.assertRaises(Exception):
-                    conv.agregar_archivo(archivo)
-        finally:
-            os.unlink(tmp.name)
-
-
-# =============================================================================
-# Casos excluidos temporalmente (requieren integración o UI)
-# =============================================================================
-
-class TestCasosPendientes(unittest.TestCase):
-    """
-    Casos que requieren pruebas de integración o interfaz gráfica.
-    Se marcan como skip hasta que el entorno esté listo.
-    """
-
-    def test_validacion_tamaño_archivo_pendiente(self):
-        """Validación de tamaño máximo de archivo (no implementada aún)."""
-        self.skipTest('Validación de tamaño no implementada en ManejadorArchivo')
-
-    def test_guardar_respuesta_en_bd_pendiente(self):
-        """Persistencia de respuestas generadas (requiere mock específico)."""
-        self.skipTest('Guardar de respuestas en BD requiere pruebas de integración')
-
-    def test_error_renderizado_ui_pendiente(self):
-        """Fallos de renderizado en interfaz (pruebas E2E)."""
-        self.skipTest('Fallos de UI se prueban en pruebas end-to-end')
-
-    def test_error_escritura_datos_bd_pendiente(self):
-        """Validación de constraints de BD (pruebas de integración)."""
-        self.skipTest('Validación de esquema/constraint requiere BD real')
-
-    def test_error_descarga_archivo_pendiente(self):
-        """Simulación de fallo en sistema de archivos (integración)."""
-        self.skipTest('Simular espacio en disco requiere pruebas de integración')
+                    conv.agregar_archivo(archivo_mock)
 
 
 if __name__ == '__main__':
