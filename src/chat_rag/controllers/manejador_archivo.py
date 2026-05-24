@@ -96,6 +96,9 @@ class ManejadorArchivo:
     
     @staticmethod
     def leer_archivo_txt(archivo: Path) -> str:
-        with open(archivo, 'r', encoding='utf-8') as f:
-            contenido = f.read()
-        return contenido.strip()
+        try:
+            with open(archivo, 'r', encoding='utf-8') as f:
+                contenido = f.read()
+            return contenido.strip()
+        except Exception as e:
+            raise ValueError(f"Error al leer el archivo TXT: {e}")

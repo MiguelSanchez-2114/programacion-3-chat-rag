@@ -37,7 +37,10 @@ class ModeloIA:
     
     def __obtener_contenido_archivo(self, conversacion: Conversacion) -> str:
         if self.__validar_archivo(conversacion):
-            return ManejadorArchivo.obtener_contenido_archivo(f"{conversacion.id_usuario}/{conversacion.archivo.nombre}")
+            try:
+                return ManejadorArchivo.obtener_contenido_archivo(f"{conversacion.id_usuario}/{conversacion.archivo.nombre}")
+            except Exception as e:
+                raise RuntimeError(f"Error al obtener el contenido del archivo: {e}")
         else:
             raise ValueError("No se ha adjuntado ningún archivo a la conversación.")
 
