@@ -926,8 +926,7 @@ class ChatView(View):
             self.main_window.loaded_file_name = archivo.nombre
             self.__add_message_bubble(f"Archivo cargado: {archivo.nombre}", "bot")
         except Exception as e:
-            print(f"Error al cargar el archivo: {str(e)}")
-            self.__add_message_bubble(f"Error al cargar el archivo: {str(e)}", "bot")
+            self.mostrar_error(f"Error al cargar el archivo: {str(e)}", "Error al cargar archivo")
 
     def __export_conversation(self) -> None:
         if not self.chat.conversacion.mensajes or len(self.chat.conversacion.mensajes) == 0:
@@ -942,11 +941,17 @@ class ChatView(View):
             "JSON (*.json)" if exportar_json else "XML (*.xml)",
         )
         
-        if exportar_json:
-            Exportador.exportar_json(self.chat.conversacion, export_path)
-        else:
-            Exportador.exportar_xml(self.chat.conversacion, export_path)
-        self.__add_message_bubble(f"Exportacion de conversacion en formato {'JSON' if exportar_json else 'XML'}.", "bot")
+        if not export_path:
+            return
+        
+        try:
+            if exportar_json:
+                Exportador.exportar_json(self.chat.conversacion, export_path)
+            else:
+                Exportador.exportar_xml(self.chat.conversacion, export_path)
+            self.__add_message_bubble(f"Exportación de conversación en formato {'JSON' if exportar_json else 'XML'}.", "bot")
+        except Exception as e:
+            self.mostrar_error(f"Error al exportar la conversación: {str(e)}", "Error de exportación")
 
     def __scroll_to_bottom(self) -> None:
         scroll_bar = self.widgets["conversation_area"].verticalScrollBar()
