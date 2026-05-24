@@ -4,9 +4,6 @@ from xml.dom import minidom
 
 from chat_rag.controllers.conversacion import Conversacion
 
-
-
-
 class Exportador:
 
     @staticmethod
