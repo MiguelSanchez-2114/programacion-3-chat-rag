@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +27,7 @@ from PySide6.QtWidgets import (
 )
 
 from chat_rag.controllers.autorizacion import Autorizacion
+from chat_rag.controllers.exportador import Exportador
 from chat_rag.controllers.manejador_archivo import ManejadorArchivo
 from chat_rag.controllers.archivo import Archivo
 from chat_rag.controllers.chat import Chat
@@ -928,7 +930,23 @@ class ChatView(View):
             self.__add_message_bubble(f"Error al cargar el archivo: {str(e)}", "bot")
 
     def __export_conversation(self) -> None:
-        self.__add_message_bubble("Exportacion de conversacion preparada.", "bot")
+        if not self.chat.conversacion.mensajes or len(self.chat.conversacion.mensajes) == 0:
+            self.mostrar_mensaje("No hay mensajes para exportar.")
+            return
+        exportar_json = self.mostrar_confirmacion("¿En qué formato deseas exportar la conversación?", "Exportar conversación", "JSON", "XML")
+        
+        export_path, _ = QFileDialog.getSaveFileName(
+            self.main_window,
+            "Guardar conversación",
+            f"conversacion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ 'json' if exportar_json else 'xml' }",
+            "JSON (*.json)" if exportar_json else "XML (*.xml)",
+        )
+        
+        if exportar_json:
+            Exportador.exportar_json(self.chat.conversacion, export_path)
+        else:
+            Exportador.exportar_xml(self.chat.conversacion, export_path)
+        self.__add_message_bubble(f"Exportacion de conversacion en formato {'JSON' if exportar_json else 'XML'}.", "bot")
 
     def __scroll_to_bottom(self) -> None:
         scroll_bar = self.widgets["conversation_area"].verticalScrollBar()
