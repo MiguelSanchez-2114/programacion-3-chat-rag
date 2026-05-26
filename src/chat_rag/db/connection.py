@@ -1,6 +1,17 @@
+from pathlib import Path
+
 from psycopg2 import connect
 from chat_rag.config import config
+import sys
 import os
+
+# Find the directory of the executable or script
+if hasattr(sys, '_MEIPASS'):
+    # If running as a bundled executable
+    base_path = Path(sys._MEIPASS) / "db"
+else:
+    # If running as a standard script
+    base_path = Path(__file__).resolve().parent
 
 class BaseDeDatos:
     __instancia = None
@@ -18,8 +29,7 @@ class BaseDeDatos:
     def __iniciar_base(self):
         conn = self.conectar()
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        path = f"{current_dir}/{self.db_name}.sql"
+        path = f"{base_path}/{self.db_name}.sql"
         print(f"Ejecutando script SQL desde: {path}")
         if conn is not None:
             cursor = conn.cursor()

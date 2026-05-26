@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import sys
 
 from PySide6.QtCore import QObject, QRectF, QSize, Qt, QThread, Signal, Slot, QTimer
 from PySide6.QtGui import (
@@ -34,7 +35,11 @@ from chat_rag.controllers.chat import Chat
 from chat_rag.controllers.modelo_ia import ModeloIA
 from chat_rag.ui.views.view import View
 
-ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+if hasattr(sys, '_MEIPASS'):
+    ASSETS_DIR = Path(sys._MEIPASS) / "assets"
+else:
+    ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+
 CHAT_CANVAS_WIDTH = 1447
 CHAT_CANVAS_HEIGHT = 736
 CACTUS_PACMAN_IMAGE = "cactus_pacman_transparente.png"

@@ -2,12 +2,13 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['src/main.py'],
     pathex=[],
     binaries=[],
     datas=[
-    ('chat_rag/assets', 'assets'),
-    ('chat_rag/db/chat_rag.sql', 'chat_rag/db'),
+    ('.env', '.'),
+    ('src/chat_rag/assets', 'assets'),
+    ('src/chat_rag/db/chat_rag.sql', 'db'),
     ],
     hiddenimports=[],
     hookspath=[],
@@ -38,5 +39,21 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='chat_rag/assets/Dino-cuello.ico',
+    icon='src/chat_rag/assets/Dino-cuello.ico',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='ChatRAWW',
+)
+
+app = BUNDLE(coll,
+    name='ChatRAWRR.app',
+    icon='src/chat_rag/assets/Dino-cuello.icns',
+    bundle_identifier=None
 )

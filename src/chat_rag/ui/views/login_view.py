@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import (
@@ -23,8 +24,10 @@ from PySide6.QtWidgets import (
 from chat_rag.ui.views.view import View
 from chat_rag.controllers.autorizacion import Autorizacion
 
-
-ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+if hasattr(sys, '_MEIPASS'):
+    ASSETS_DIR = Path(sys._MEIPASS) / "assets"
+else:
+    ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
 CANVAS_WIDTH = 1447
 CANVAS_HEIGHT = 736
