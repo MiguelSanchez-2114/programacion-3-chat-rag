@@ -1,8 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import sys
 
-from PySide6.QtCore import QObject, QRectF, QSize, Qt, QThread, Signal, Slot
+from PySide6.QtCore import QObject, QRectF, QSize, Qt, QThread, Signal, Slot, QTimer
 from PySide6.QtGui import (
     QColor,
     QFont,
@@ -34,7 +35,11 @@ from chat_rag.controllers.chat import Chat
 from chat_rag.controllers.modelo_ia import ModeloIA
 from chat_rag.ui.views.view import View
 
-ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+if hasattr(sys, '_MEIPASS'):
+    ASSETS_DIR = Path(sys._MEIPASS) / "assets"
+else:
+    ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+
 CHAT_CANVAS_WIDTH = 1447
 CHAT_CANVAS_HEIGHT = 736
 CACTUS_PACMAN_IMAGE = "cactus_pacman_transparente.png"
@@ -954,8 +959,13 @@ class ChatView(View):
             self.mostrar_error(f"Error al exportar la conversación: {str(e)}", "Error de exportación")
 
     def __scroll_to_bottom(self) -> None:
-        scroll_bar = self.widgets["conversation_area"].verticalScrollBar()
-        scroll_bar.setValue(scroll_bar.maximum())
+        """Scroll to bottom with a small delay to ensure layout is updated."""
+        def _do_scroll():
+            scroll_bar = self.widgets["conversation_area"].verticalScrollBar()
+            scroll_bar.setValue(scroll_bar.maximum())
+    
+        # Defer scroll until after layout update
+        QTimer.singleShot(0, _do_scroll)
 
     def __apply_chat_styles(self) -> None:
         self.main_window.setStyleSheet(
@@ -1136,8 +1146,13 @@ class ChatView(View):
             # Obtenemos los mensajes previos
             mensajes_previos = self.chat.obtener_ultimos_mensajes()
             for mensaje in mensajes_previos:
-                self.__add_message_bubble(message=mensaje.contenido, sender=mensaje.emisor, date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S"))
+                self.__add_message_bubble(
+                    message=mensaje.contenido, 
+                    sender=mensaje.emisor, 
+                    date=mensaje.fecha.strftime("%Y-%m-%d %H:%M:%S")
+                )
 
-            self.__scroll_to_bottom()
+            # Scroll after all messages are loaded (con delay un poco mayor)
+            QTimer.singleShot(100, self.__scroll_to_bottom)
         except Exception as e:
             print(f"Error al cargar mensajes previos: {str(e)}")

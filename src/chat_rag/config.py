@@ -1,7 +1,27 @@
 import os
+from pathlib import Path
+import sys
 from dotenv import load_dotenv
 
-load_dotenv()
+# Find the directory of the executable or script
+# if getattr(sys, 'frozen', False):
+#     # If running as a bundled executable
+#     base_path = os.path.dirname(sys.executable) + "/.."
+# else:
+#     # If running as a standard script
+#     base_path = os.path.dirname(os.path.abspath(__file__)) + "/../.."
+
+
+if hasattr(sys, '_MEIPASS'):
+    # If running as a bundled executable
+    base_path = Path(sys._MEIPASS).resolve()
+else:
+    # If running as a standard script
+    base_path = Path(__file__).resolve().parents[2]
+
+dotenv_path = os.path.join(base_path, '.env')
+print(f"Cargando variables de entorno desde: {dotenv_path}")
+load_dotenv(dotenv_path)
 
 class Configuraciones:
     __env = os.getenv("ENV", "dev")
